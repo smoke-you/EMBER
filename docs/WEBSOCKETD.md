@@ -1,6 +1,6 @@
 # Websocket Daemon
 
-The EMBER websocketd protocol is the work of the author.
+The EMBER websocketd protocol server is the work of the author.
 
 References include:
 * [The Websocket Handbook](https://pages.ably.com/hubfs/the-websocket-handbook.pdf)
@@ -32,7 +32,7 @@ The limited message size prevents any message from using the largest size header
 
 When an HTTP connection is upgraded to a Websocket connection, the existing `HTTPClient_t` instance is changed to a `WebsocketClient_t` instance at the same memory location. This is possible because:
 
-* In a OO sense (in as much as C can be made to behave in an OO way), `HTTPClient_t` and `WebsocketClient_t` both inherit from `TCPClient_t` and the properties of `TCPClient_t` are at the same relative memory locations for both child classes.
+* In an OO sense (in as much as C can be made to behave in an OO way), `HTTPClient_t` and `WebsocketClient_t` both inherit from `TCPClient_t` and the properties of `TCPClient_t` are at the same relative memory locations for both child classes.
 * A `WebsocketClient_t` (192 bytes) is considerably smaller than a `HTTPClient_t` (468 bytes), so can overwrite it without overflowing its memory bounds.
 
 During the upgrade process, the `TCPClient_t` common properties `xCreator`, `xWorker` and `xDelete` of the client object are altered to point to the corresponding websocketd functions. However, the `uxClientSz` common property is not, as the actual size of the client object has not changed.  Additionally, the route from which the websocket was derived is copied into the `pcRoute` property. This allows the websocket client instance to be identified as being associated with a particular server task during message transmission, as discussed [here](./WEBSOCKETD_getting_started.md#upgrading-routes) and [here](./WEBSOCKETD_getting_started.md#service-tasks).
@@ -76,12 +76,12 @@ BaseType_t xSendWebsocketBinaryMessage(void *pxc, const char *pcMsg, const size_
 
 A FreeRTOS task that interacts with users via websocket connections can [receive](#handling-received-messages) and [respond to](#responding-to-received-messages) websocket messages via a handler function, as discussed above. However, the principal value of websockets, compared to e.g. HTTP POST requests, is that they allow websocket server tasks to asynchronously transmit (or *push*) content to clients, i.e. without the client polling the server. In the context of FreeRTOS, this means that tasks other than the EMBER task must be able to asynchronously transmit messages to websocket clients.
 
-A websocket server task can identify and transmit to connected clients using the function `void Ember_SelectClients(BaseType_t (*xSelect)(void*, void*), void *pxArg)` exposed by `ember.h`. This function takes two parameters:
-  * `xSelect` is a function pointer that specifies what to do with `pxArg`; and 
-  * `pxArg` is a pointer to the data that is to be passed to `xSelect`.
+A websocket server task can identify and transmit to connected clients using the function `void Ember_SelectClients(BaseType_t (*xSelect)(void*, void*), void *pvArg)` exposed by `ember.h`. This function takes two parameters:
+  * `xSelect` is a function pointer that specifies what to do with `pvArg` for each selected `TCPClient_t` instance; and 
+  * `pvArg` is a pointer to the data that is to be passed to `xSelect`.
 
-`xSelect` itself is executed by `Ember_SelectClients` once for each `TCPClient_t` instance that is currently connected to the EMBER server; the two `void*` arguments are the current `TCPClient_t` instance and the data supplied as `pxArg`. The list of current TCP clients is protected by a FreeRTOS mutex manage concurrency risks.
+`xSelect` itself is executed by `Ember_SelectClients` once for each `TCPClient_t` instance that is currently connected to the EMBER server; the two `void*` arguments are the current `TCPClient_t` instance and the data supplied as `pvArg`. The list of current TCP clients is protected by a FreeRTOS mutex manage concurrency risks.
 
-An example of how to configure `xSelect` and `pxArg` is shown [here](./WEBSOCKETD_getting_started.md#service-tasks).
+An example of how to configure `xSelect` and `pvArg` is shown [here](./WEBSOCKETD_getting_started.md#service-tasks).
 
-Other uses may be concievably be found for `Ember_SelectClients`, but it was designed to allow websocket server tasks to broadcast messages to the subset of dependent Websocket clients.  The server task provides both `xSelect` and `pxArg`, allowing it to iterate over the set of current TCP clients, identify websocket clients that "belong" to it, and transmit messages to only those clients using the [websocket message transmission functions](#responding-to-received-messages).
+Other uses may be concievably be found for `Ember_SelectClients`, but it was designed to allow websocket server tasks to broadcast messages to the subset of dependent Websocket clients.  The server task provides both `xSelect` and `pvArg`, allowing it to iterate over the set of current TCP clients, identify websocket clients that "belong" to it, and transmit messages to only those clients using the [websocket message transmission functions](#responding-to-received-messages).

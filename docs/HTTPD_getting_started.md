@@ -2,7 +2,7 @@
 
 ## Configuration Macros
 
-The following macros are used by httpd. They may be user-defined in a configuration header, typically `httpd_config.h`.
+The following macros are used by httpd. User-defined values may be set in the configuration header file `ember_config.h`. If no values are defined for these macros in `ember_config.h` then the default values shown below will be used.
 
 | #define | Default | Explanation |
 | :-- | --: | :-- |
@@ -12,9 +12,9 @@ The following macros are used by httpd. They may be user-defined in a configurat
 
 ## Configuration Objects
 
-A configuration object, `xRouteConfig`, is used to describe HTTP routes and their handlers. If a public object of this name is not defined by the user, e.g. in `ember_config.c`, then a very limited default object (that simply returns a 404 error to all connection attempts) will be defined instead.
+A configuration object, `xRouteConfig`, is used to describe HTTP routes and their handlers. If a public object of this name is not defined by the user, e.g. in `ember_config.c`, then a very limited default object (that simply returns a 404 error to all connection attempts) will be used instead.
 
-`xRouteConfig` is an instance of `RouteConfig_t`, which is made up of:
+`xRouteConfig` is an instance of `RouteConfig_t`:
 
 | Field Name | Description |
 | --- | --- |
@@ -128,7 +128,7 @@ static BaseType_t httpRootHandler(void *pxc) {
 
 ### Example Static Files Handler Function
 
-Following is an example of mapping a route to a segment of the host's filesystem.
+Following is an example of mapping a route to a segment of the host's filesystem. In this case, the HTTP path `/static` is mapped to the filesystem path `/spidisk/web/static`.
 
 ```
 static BaseType_t httpStaticHandler(void *pxc) {
@@ -174,7 +174,7 @@ static BaseType_t httpStaticHandler(void *pxc) {
 
 Following is an example of responding to an HTTP request with dynamically generated content. Chunked HTTP transmission is used because the size of the response is not known when the HTTP headers are transmitted.
 
-Note that the function `RNG_Read()` is not documented as it is not part of EMBER.
+Note that the function `RNG_Read()` is not documented as it is not part of EMBER. It returns a 32-bit unsigned integer.
 
 ```
 static BaseType_t httpRNGHandler(void *pxc) {
