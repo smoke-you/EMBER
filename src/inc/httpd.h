@@ -56,11 +56,11 @@
  public constants
  ===============================================*/
 
-#define HTTPD_ROUTE_TERMINATOR    ((const char const *)0xffffffff)
-#define HTTPD_CLIENT_SZ           (sizeof(HTTPClient_t))
-#define HTTPD_CREATOR_METHOD      (NULL)
-#define HTTPD_WORKER_METHOD       (xHttpWork)
-#define HTTPD_DELETE_METHOD       (xHttpDelete)
+#define HTTPD_ROUTE_TERMINATOR ((const char const *)0xffffffff)
+#define HTTPD_CLIENT_SZ (sizeof(HTTPClient_t))
+#define HTTPD_CREATOR_METHOD (NULL)
+#define HTTPD_WORKER_METHOD (xHttpWork)
+#define HTTPD_DELETE_METHOD (xHttpDelete)
 
 /*===============================================
  public data prototypes
@@ -71,7 +71,8 @@
  * @brief Mapping between a received HTTP header and a "header of interest"
  *   defined in a private array `pxRcvdHeaderDescs` in `httpd.c`
  */
-struct xHTTP_HEADER_DESC {
+struct xHTTP_HEADER_DESC
+{
 	BaseType_t xDescriptor;
 	char *pcValue;
 };
@@ -81,16 +82,18 @@ struct xHTTP_HEADER_DESC {
  * @brief HTTP client data record. Inherits from `TCPClient_t` via the
  *   `TCP_CLIENT_PROPERTIES` macro.
  */
-struct xHTTP_CLIENT {
-	TCP_CLIENT_PROPERTIES
-		;
+struct xHTTP_CLIENT
+{
+	TCP_CLIENT_PROPERTIES;
 	/* --- Keep at the top  --- */
 	char *pcUrlData;
 	size_t uxBytesLeft;
 	FF_FILE *pxFileHandle;
-	union {
-		struct {
-			unsigned bReplySent :1;
+	union
+	{
+		struct
+		{
+			unsigned bReplySent : 1;
 		};
 		uint32_t ulFlags;
 	} bits;
@@ -109,19 +112,20 @@ typedef struct xHTTP_CLIENT HTTPClient_t;
  * @enum eHttpStatus
  * @brief Enumeration of HTTP response status codes.
  */
-typedef enum {
-	eHTTP_SWITCHING_PROTOCOLS = 101,  /**< eHTTP_SWITCHING_PROTOCOLS */
-	eHTTP_REPLY_OK = 200,             /**< eHTTP_REPLY_OK */
-	eHTTP_NO_CONTENT = 204,           /**< eHTTP_NO_CONTENT */
-	eHTTP_BAD_REQUEST = 400,          /**< eHTTP_BAD_REQUEST */
-	eHTTP_UNAUTHORIZED = 401,         /**< eHTTP_UNAUTHORIZED */
-	eHTTP_NOT_FOUND = 404,            /**< eHTTP_NOT_FOUND */
-	eHTTP_NOT_ALLOWED = 405,          /**< eHTTP_NOT_ALLOWED */
-	eHTTP_GONE = 410,                 /**< eHTTP_GONE */
-	eHTTP_PRECONDITION_FAILED = 412,  /**< eHTTP_PRECONDITION_FAILED */
-	eHTTP_PAYLOAD_TOO_LARGE = 413,    /**< eHTTP_PAYLOAD_TOO_LARGE */
-	eHTTP_HEADER_TOO_LARGE = 431,     /**< eHTTP_HEADER_TOO_LARGE */
-	eHTTP_INTERNAL_SERVER_ERROR = 500,/**< eHTTP_INTERNAL_SERVER_ERROR */
+typedef enum
+{
+	eHTTP_SWITCHING_PROTOCOLS = 101,   /**< eHTTP_SWITCHING_PROTOCOLS */
+	eHTTP_REPLY_OK = 200,			   /**< eHTTP_REPLY_OK */
+	eHTTP_NO_CONTENT = 204,			   /**< eHTTP_NO_CONTENT */
+	eHTTP_BAD_REQUEST = 400,		   /**< eHTTP_BAD_REQUEST */
+	eHTTP_UNAUTHORIZED = 401,		   /**< eHTTP_UNAUTHORIZED */
+	eHTTP_NOT_FOUND = 404,			   /**< eHTTP_NOT_FOUND */
+	eHTTP_NOT_ALLOWED = 405,		   /**< eHTTP_NOT_ALLOWED */
+	eHTTP_GONE = 410,				   /**< eHTTP_GONE */
+	eHTTP_PRECONDITION_FAILED = 412,   /**< eHTTP_PRECONDITION_FAILED */
+	eHTTP_PAYLOAD_TOO_LARGE = 413,	   /**< eHTTP_PAYLOAD_TOO_LARGE */
+	eHTTP_HEADER_TOO_LARGE = 431,	   /**< eHTTP_HEADER_TOO_LARGE */
+	eHTTP_INTERNAL_SERVER_ERROR = 500, /**< eHTTP_INTERNAL_SERVER_ERROR */
 } eHttpStatus;
 
 /**
@@ -129,47 +133,48 @@ typedef enum {
  * @brief Mapping of HTTP status code enumerated at `eHttpStatus` to
  *   corresponding text description.
  */
-struct xHTTP_STATUS_DESC {
+struct xHTTP_STATUS_DESC
+{
 	BaseType_t uxLen;
 	const char *const pcText;
 	BaseType_t pcStatus;
 };
 typedef struct xHTTP_STATUS_DESC HttpStatusDescriptor_t;
 static const HttpStatusDescriptor_t xHttpStatuses[] = {
-    { 19, "switching protocols", eHTTP_SWITCHING_PROTOCOLS },
-    { 2, "OK", eHTTP_REPLY_OK },
-    { 10, "no content", eHTTP_NO_CONTENT },
-    { 11, "bad request", eHTTP_BAD_REQUEST },
-    { 14, "not authorized", eHTTP_UNAUTHORIZED },
-    { 9, "not found", eHTTP_NOT_FOUND },
-    { 11, "not allowed", eHTTP_NOT_ALLOWED },
-    { 5, "gone!", eHTTP_GONE },
-    { 19, "precondition failed", eHTTP_PRECONDITION_FAILED },
-    { 17, "payload too large", eHTTP_PAYLOAD_TOO_LARGE },
-    { 17, "headers too large", eHTTP_HEADER_TOO_LARGE },
-    { 21, "internal server error", eHTTP_INTERNAL_SERVER_ERROR },
-    { 0, "", -1 },
+	{19, "switching protocols", eHTTP_SWITCHING_PROTOCOLS},
+	{2, "OK", eHTTP_REPLY_OK},
+	{10, "no content", eHTTP_NO_CONTENT},
+	{11, "bad request", eHTTP_BAD_REQUEST},
+	{14, "not authorized", eHTTP_UNAUTHORIZED},
+	{9, "not found", eHTTP_NOT_FOUND},
+	{11, "not allowed", eHTTP_NOT_ALLOWED},
+	{5, "gone!", eHTTP_GONE},
+	{19, "precondition failed", eHTTP_PRECONDITION_FAILED},
+	{17, "payload too large", eHTTP_PAYLOAD_TOO_LARGE},
+	{17, "headers too large", eHTTP_HEADER_TOO_LARGE},
+	{21, "internal server error", eHTTP_INTERNAL_SERVER_ERROR},
+	{0, "", -1},
 };
-static const size_t xNumHttpStatusDescs = sizeof(xHttpStatuses)
-    / sizeof(HttpStatusDescriptor_t);
+static const size_t xNumHttpStatusDescs = sizeof(xHttpStatuses) / sizeof(HttpStatusDescriptor_t);
 static const HttpStatusDescriptor_t *pxDefaultHttpStatus =
-    &xHttpStatuses[xNumHttpStatusDescs - 1];
+	&xHttpStatuses[xNumHttpStatusDescs - 1];
 
 /**
  * @enum eHttpVerb
  * @brief Enumeration of HTTP verbs.
  */
-typedef enum {
-	eHTTP_GET = 0,/**< eHTTP_GET */
-	eHTTP_HEAD,   /**< eHTTP_HEAD */
-	eHTTP_POST,   /**< eHTTP_POST */
-	eHTTP_PUT,    /**< eHTTP_PUT */
-	eHTTP_DELETE, /**< eHTTP_DELETE */
-	eHTTP_TRACE,  /**< eHTTP_TRACE */
-	eHTTP_OPTIONS,/**< eHTTP_OPTIONS */
-	eHTTP_CONNECT,/**< eHTTP_CONNECT */
-	eHTTP_PATCH,  /**< eHTTP_PATCH */
-	eHTTP_UNKNOWN,/**< eHTTP_UNKNOWN */
+typedef enum
+{
+	eHTTP_GET = 0, /**< eHTTP_GET */
+	eHTTP_HEAD,	   /**< eHTTP_HEAD */
+	eHTTP_POST,	   /**< eHTTP_POST */
+	eHTTP_PUT,	   /**< eHTTP_PUT */
+	eHTTP_DELETE,  /**< eHTTP_DELETE */
+	eHTTP_TRACE,   /**< eHTTP_TRACE */
+	eHTTP_OPTIONS, /**< eHTTP_OPTIONS */
+	eHTTP_CONNECT, /**< eHTTP_CONNECT */
+	eHTTP_PATCH,   /**< eHTTP_PATCH */
+	eHTTP_UNKNOWN, /**< eHTTP_UNKNOWN */
 } eHttpVerb;
 
 /**
@@ -177,36 +182,38 @@ typedef enum {
  * @brief Mapping of HTTP verbs enumerated at `eHttpVerb` to corresponding text
  *   description.
  */
-struct xHTTP_VERB_DESC {
+struct xHTTP_VERB_DESC
+{
 	size_t xLen;
 	const char *const text;
 	eHttpVerb xVerb;
 };
 typedef struct xHTTP_VERB_DESC HttpVerbDescriptor_t;
 static const HttpVerbDescriptor_t xHttpVerbs[] = {
-    { 3, "GET", eHTTP_GET },
-    { 4, "HEAD", eHTTP_HEAD },
-    { 4, "POST", eHTTP_POST },
-    { 3, "PUT", eHTTP_PUT },
-    { 6, "DELETE", eHTTP_DELETE },
-    { 5, "TRACE", eHTTP_TRACE },
-    { 7, "OPTIONS", eHTTP_OPTIONS },
-    { 7, "CONNECT", eHTTP_CONNECT },
-    { 5, "PATCH", eHTTP_PATCH },
-    { 7, "UNKNOWN", eHTTP_UNKNOWN },
-    { 0, "", -1 },
+	{3, "GET", eHTTP_GET},
+	{4, "HEAD", eHTTP_HEAD},
+	{4, "POST", eHTTP_POST},
+	{3, "PUT", eHTTP_PUT},
+	{6, "DELETE", eHTTP_DELETE},
+	{5, "TRACE", eHTTP_TRACE},
+	{7, "OPTIONS", eHTTP_OPTIONS},
+	{7, "CONNECT", eHTTP_CONNECT},
+	{5, "PATCH", eHTTP_PATCH},
+	{7, "UNKNOWN", eHTTP_UNKNOWN},
+	{0, "", -1},
 };
 static const HttpVerbDescriptor_t *pxDefaultVerb =
-    &xHttpVerbs[(sizeof(xHttpVerbs) / sizeof(HttpVerbDescriptor_t)) - 2];
+	&xHttpVerbs[(sizeof(xHttpVerbs) / sizeof(HttpVerbDescriptor_t)) - 2];
 
 /**
  * @enum eRouteOptions
  * @brief Enumeration of bit flag options for treatment of HTTP routes.
  */
-typedef enum {
-	eRouteOption_None = 0,                 /**< eRouteOption_None */
-	eRouteOption_IgnoreTrailingSlash = 0x1,/**< eRouteOption_IgnoreTrailingSlash */
-	eRouteOption_AllowWildcards = 0x2,     /**< eRouteOption_AllowWildcards */
+typedef enum
+{
+	eRouteOption_None = 0,					/**< eRouteOption_None */
+	eRouteOption_IgnoreTrailingSlash = 0x1, /**< eRouteOption_IgnoreTrailingSlash */
+	eRouteOption_AllowWildcards = 0x2,		/**< eRouteOption_AllowWildcards */
 } eRouteOptions;
 
 /**
@@ -214,21 +221,24 @@ typedef enum {
  * @brief Enumeration of bit flag options for construction of HTTP headers for
  *   transmission.
  */
-typedef enum {
-	eResponseOption_None = 0,         /**< eResponseOption_None */
-	eResponseOption_ContentLength = 1,/**< eResponseOption_ContentLength */
-	eResponseOption_ChunkedBody = 2,  /**< eResponseOption_ChunkedBody */
+typedef enum
+{
+	eResponseOption_None = 0,		   /**< eResponseOption_None */
+	eResponseOption_ContentLength = 1, /**< eResponseOption_ContentLength */
+	eResponseOption_ChunkedBody = 2,   /**< eResponseOption_ChunkedBody */
 } eResponseOptions;
 
 /**
  * @union xRESPONSE_OPTIONS
  * @brief Mapping of `eResponseOptions` bit flags to struct bitfields.
  */
-union xRESPONSE_OPTIONS {
+union xRESPONSE_OPTIONS
+{
 	UBaseType_t ulValue;
-	struct {
-		unsigned content_length :1;
-		unsigned chunked_body :1;
+	struct
+	{
+		unsigned content_length : 1;
+		unsigned chunked_body : 1;
 	};
 };
 typedef union xRESPONSE_OPTIONS ResponseOptions_t;
@@ -237,28 +247,31 @@ typedef union xRESPONSE_OPTIONS ResponseOptions_t;
  * @fn BaseType_t (*xRouteHandler)(void*)
  * @brief Signature for HTTP route handler functions.
  */
-typedef BaseType_t (xRouteHandler)(void*);
+typedef BaseType_t(xRouteHandler)(void *);
 /**
  * @fn BaseType_t (*xErrorHandler)(void*, eHttpStatus)
  * @brief Signature for HTTP error handler functions
  */
-typedef BaseType_t (xErrorHandler)(void*, eHttpStatus);
+typedef BaseType_t(xErrorHandler)(void *, eHttpStatus);
 
 /**
  * @struct xROUTE_ITEM
  * @brief Description of an individual HTTP route.
  */
-struct xROUTE_ITEM {
-	union {
+struct xROUTE_ITEM
+{
+	union
+	{
 		UBaseType_t uxValue;
-		struct {
-			unsigned ignore_trailing_slash :1;
-			unsigned allow_wildcards :1;
-			unsigned :30;
+		struct
+		{
+			unsigned ignore_trailing_slash : 1;
+			unsigned allow_wildcards : 1;
+			unsigned : 30;
 		};
 	} uxOptions;
 	xRouteHandler *pxHandler;
-	const char const *const*pcPath;
+	const char const *const *pcPath;
 };
 typedef struct xROUTE_ITEM RouteItem_t;
 
@@ -266,7 +279,8 @@ typedef struct xROUTE_ITEM RouteItem_t;
  * @struct xROUTE_CONFIG
  * @brief Collection of HTTP routes and related information.
  */
-struct xROUTE_CONFIG {
+struct xROUTE_CONFIG
+{
 	const char const *pcDelims;
 	const size_t uxNumRoutes;
 	const RouteItem_t const *pxItems;
@@ -309,8 +323,8 @@ BaseType_t xHttpDelete(void *pxc);
  * @param xStatus The status code to search for
  * @return A pointer to an `HttpStatusDescriptor_t` that includes the status text.
  */
-const HttpStatusDescriptor_t* const pxGetHttpStatusMessage(
-    const BaseType_t xStatus);
+const HttpStatusDescriptor_t *const pxGetHttpStatusMessage(
+	const BaseType_t xStatus);
 
 /**
  * @fn size_t xPrintRoute(char*, const char**, const size_t)
@@ -344,7 +358,7 @@ size_t xPrintParams(char *pcDest, const char **pxParamParts, const size_t uxn);
  * @param pcFileExt The file extension.
  * @return A char* to an HTTP content type string.
  */
-const char* pcGetContentsType(const char *pcFileExt);
+const char *pcGetContentsType(const char *pcFileExt);
 
 /**
  * @fn BaseType_t xSendHttpResponseHeaders(void*, const BaseType_t,
@@ -366,12 +380,12 @@ const char* pcGetContentsType(const char *pcFileExt);
  *   > 0 the number of bytes transmitted
  */
 BaseType_t xSendHttpResponseHeaders(
-    void *pxc,
-    const BaseType_t xCode,
-    const UBaseType_t uxOpts,
-    const size_t uxLen,
-    const char *pcContentType,
-    const char *pcExtra);
+	void *pxc,
+	const BaseType_t xCode,
+	const UBaseType_t uxOpts,
+	const size_t uxLen,
+	const char *pcContentType,
+	const char *pcExtra);
 
 /**
  * @fn BaseType_t xSendHttpResponseContent(void*, char*, size_t)
@@ -465,9 +479,9 @@ BaseType_t xGetHeaderValue(void *pxc, const char *pcText, char **pcValue);
  *   > 0 the number of bytes transmitted
  */
 BaseType_t xUpgradeToWebsocket(
-    void *pxc,
-    const WebsocketMessageHandler_t txtHandler,
-    const WebsocketMessageHandler_t binHandler,
-    const char *pcRoute);
+	void *pxc,
+	const WebsocketMessageHandler_t txtHandler,
+	const WebsocketMessageHandler_t binHandler,
+	const char *pcRoute);
 
 #endif /* EMBER_V0_0_INC_HTTPD_H_ */

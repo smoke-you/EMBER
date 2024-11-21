@@ -36,7 +36,7 @@ const WebProtoConfig_t pxWebProtocols[] = {
   { 21, 4, "/", FTPD_CLIENT_SZ, FTPD_CREATOR_METHOD, FTPD_WORKER_METHOD, FTPD_WORKER_METHOD },
   { 80, 12, "/", HTTPD_CLIENT_SZ, HTTPD_CREATOR_METHOD, HTTPD_WORKER_METHOD, HTTPD_DELETE_METHOD },
 };
-const TCPServerConfig_t xWebProtoConfig = { 2, webProtocols };
+const TCPServerConfig_t xWebProtoConfig = { 2, pxWebProtocols };
 
 ```
 

@@ -59,7 +59,8 @@
  private data prototypes
  ===============================================*/
 
-typedef struct {
+typedef struct
+{
 	BaseType_t xReady;
 	const configSTACK_DEPTH_TYPE uxStackSz;
 	const TickType_t uxStartupDelay;
@@ -76,64 +77,68 @@ typedef struct {
 /* Task for the Ember server */
 static void prvEmber_Service(void *args);
 
-static TCPServer_t* prvCreateTCPServer(
-    const TCPServerConfig_t *const pxServerCfg);
+static TCPServer_t *prvCreateTCPServer(
+	const TCPServerConfig_t *const pxServerCfg);
 static BaseType_t prvCreateProtocolServer(
-    WebProtoServer_t *pxProto,
-    const WebProtoConfig_t *pxProtoCfg);
+	WebProtoServer_t *pxProto,
+	const WebProtoConfig_t *pxProtoCfg);
 static void prvTCPServerWork(void);
 static void prvAcceptNewClient(WebProtoServer_t *pxProto, Socket_t xNewSock);
-static TCPClient_t* prvRemoveClient(TCPClient_t *pxClient);
-static TCPClient_t* prvDropClient(TCPClient_t *pxClient);
+static TCPClient_t *prvRemoveClient(TCPClient_t *pxClient);
+static TCPClient_t *prvDropClient(TCPClient_t *pxClient);
 
 /*===============================================
  external objects
  ===============================================*/
 
-extern const TCPServerConfig_t xWebProtoConfig __attribute__ ((weak, alias ("_xWebProtoConfig")));
+extern const TCPServerConfig_t xWebProtoConfig __attribute__((weak, alias("_xWebProtoConfig")));
 /* the `xWebProtoConfig` object should be located elsewhere in source, e.g. in ember_config.c
  * */
-static const TCPServerConfig_t _xWebProtoConfig = { 0, 0 };
+static const TCPServerConfig_t _xWebProtoConfig = {0, 0};
 
 /*===============================================
  private global variables
  ===============================================*/
 
 static EmberConfig_t xEmber =
-    { pdFALSE, 2048, 3000, 10, 0, &xWebProtoConfig, 0 };
+	{pdFALSE, 2048, 3000, 10, 0, &xWebProtoConfig, 0};
 
 /*===============================================
  public functions
  ===============================================*/
 
-void Ember_Init() {
+void Ember_Init()
+{
 	if (xEmber.xReady)
-	  return;
-	xTaskCreate(prvEmber_Service, (const char*) "Ember", xEmber.uxStackSz, 0,
-	    tskIDLE_PRIORITY, &xEmber.xPid);
+		return;
+	xTaskCreate(prvEmber_Service, (const char *)"Ember", xEmber.uxStackSz, 0,
+				tskIDLE_PRIORITY, &xEmber.xPid);
 	xEmber.xReady = pdTRUE;
 }
 
-void Ember_DeInit() {
+void Ember_DeInit()
+{
 	if (!xEmber.xReady)
-	  return;
+		return;
 	vTaskDelete(xEmber.xPid);
 	xEmber.xPid = 0;
 	xEmber.xReady = pdFALSE;
 }
 
-void Ember_SelectClients(BaseType_t (*xActionFunc)(void*, void*), void *pxArg) {
+void Ember_SelectClients(BaseType_t (*xActionFunc)(void *, void *), void *pxArg)
+{
 	TCPClient_t *pxCurrClient, *pxNextClient;
 	BaseType_t xRc;
 	if (!xEmber.xReady || !xEmber.pxServer || !xEmber.pxServer->pxClients)
-	  return;
+		return;
 	xSemaphoreTake(xEmber.pxServer->xClientMutex, xEmber.uxPeriod * 2);
 	pxCurrClient = xEmber.pxServer->pxClients;
-	while (pxCurrClient) {
+	while (pxCurrClient)
+	{
 		pxNextClient = pxCurrClient->pxNextClient;
 		xRc = xActionFunc(pxCurrClient, pxArg);
 		if (xRc < 0)
-		  prvDropClient(pxCurrClient);
+			prvDropClient(pxCurrClient);
 		pxCurrClient = pxNextClient;
 	}
 	xSemaphoreGive(xEmber.pxServer->xClientMutex);
@@ -143,15 +148,18 @@ void Ember_SelectClients(BaseType_t (*xActionFunc)(void*, void*), void *pxArg) {
  private functions
  ===============================================*/
 
-static void prvEmber_Service(void *args) {
+static void prvEmber_Service(void *args)
+{
 	vTaskDelay(xEmber.uxStartupDelay);
 	xEmber.pxServer = prvCreateTCPServer(xEmber.pxWebConfig);
-	if (!xEmber.pxServer) {
+	if (!xEmber.pxServer)
+	{
 		xEmber.xPid = 0;
 		xEmber.xReady = pdFALSE;
 		return;
 	}
-	while (1) {
+	while (1)
+	{
 		prvTCPServerWork();
 	}
 }
@@ -159,8 +167,9 @@ static void prvEmber_Service(void *args) {
 /* TODO: servers should be created on a specific network interface, not just assigned to
  * the first one (or maybe all of them)
  * */
-static TCPServer_t* prvCreateTCPServer(
-    const TCPServerConfig_t *const pxServerCfg) {
+static TCPServer_t *prvCreateTCPServer(
+	const TCPServerConfig_t *const pxServerCfg)
+{
 	TCPServer_t *pxNewServer;
 	SocketSet_t xSockSet;
 	Socket_t xSock;
@@ -168,22 +177,24 @@ static TCPServer_t* prvCreateTCPServer(
 	BaseType_t xNoTimeout = 0;
 
 	if (!pxServerCfg || pxServerCfg->uxNumProtocols <= 0)
-	  return 0;
+		return 0;
 	xSockSet = FreeRTOS_CreateSocketSet();
 	if (!xSockSet)
-	  return 0;
-	size_t uxServerSz = sizeof(TCPServer_t)
-	    + ((pxServerCfg->uxNumProtocols - 1) * sizeof(WebProtoServer_t));
+		return 0;
+	size_t uxServerSz = sizeof(TCPServer_t) + ((pxServerCfg->uxNumProtocols - 1) * sizeof(WebProtoServer_t));
 	pxNewServer = pvPortMalloc(uxServerSz);
-	if (!pxNewServer) {
+	if (!pxNewServer)
+	{
 		FreeRTOS_DeleteSocketSet(xSockSet);
 		return 0;
 	}
 	memset(pxNewServer, 0, uxServerSz);
 	pxNewServer->xSockSet = xSockSet;
-	for (BaseType_t i = 0; i < pxServerCfg->uxNumProtocols; i++) {
+	for (BaseType_t i = 0; i < pxServerCfg->uxNumProtocols; i++)
+	{
 		if (prvCreateProtocolServer(&pxNewServer->pxProtocols[i],
-		    &pxServerCfg->pxProtocols[i]) == pdTRUE) {
+									&pxServerCfg->pxProtocols[i]) == pdTRUE)
+		{
 			xSock = pxNewServer->pxProtocols[i].xSock;
 			pxNewServer->pxProtocols[i].pxParent = pxNewServer;
 			// TODO: need to specify the network interface, not just get the first one!
@@ -192,10 +203,10 @@ static TCPServer_t* prvCreateTCPServer(
 			xSockAddr.sin_family = FREERTOS_AF_INET;
 			FreeRTOS_bind(xSock, &xSockAddr, sizeof(xSockAddr));
 			FreeRTOS_listen(xSock, pxServerCfg->pxProtocols[i].xBacklog);
-			FreeRTOS_setsockopt(xSock, 0, FREERTOS_SO_RCVTIMEO, (void*) &xNoTimeout,
-			    sizeof(xNoTimeout));
-			FreeRTOS_setsockopt(xSock, 0, FREERTOS_SO_SNDTIMEO, (void*) &xNoTimeout,
-			    sizeof(xNoTimeout));
+			FreeRTOS_setsockopt(xSock, 0, FREERTOS_SO_RCVTIMEO, (void *)&xNoTimeout,
+								sizeof(xNoTimeout));
+			FreeRTOS_setsockopt(xSock, 0, FREERTOS_SO_SNDTIMEO, (void *)&xNoTimeout,
+								sizeof(xNoTimeout));
 			FreeRTOS_FD_SET(xSock, xSockSet, eSELECT_READ | eSELECT_EXCEPT);
 		}
 	}
@@ -206,13 +217,14 @@ static TCPServer_t* prvCreateTCPServer(
 }
 
 static BaseType_t prvCreateProtocolServer(
-    WebProtoServer_t *pxProto,
-    const WebProtoConfig_t *pxProtoCfg) {
+	WebProtoServer_t *pxProto,
+	const WebProtoConfig_t *pxProtoCfg)
+{
 	memset(pxProto, 0, sizeof(pxProto));
 	Socket_t xSock = FreeRTOS_socket(FREERTOS_AF_INET, FREERTOS_SOCK_STREAM,
-	FREERTOS_IPPROTO_TCP);
+									 FREERTOS_IPPROTO_TCP);
 	if (!xSock)
-	  return pdFALSE;
+		return pdFALSE;
 	pxProto->pcRootDir = pxProtoCfg->pcRootDir;
 	pxProto->xSock = xSock;
 	pxProto->uxClientSz = pxProtoCfg->uxClientSz;
@@ -222,49 +234,57 @@ static BaseType_t prvCreateProtocolServer(
 	return pdTRUE;
 }
 
-static void prvTCPServerWork(void) {
+static void prvTCPServerWork(void)
+{
 	TCPClient_t *currClient;
 	BaseType_t xRc;
 	if (!xEmber.xReady || !xEmber.pxServer)
-	  return;
+		return;
 	// check for new connections/clients
 	xRc = FreeRTOS_select(xEmber.pxServer->xSockSet, xEmber.uxPeriod);
-	if (xRc != 0) {
-		for (BaseType_t i = 0; i < xEmber.pxServer->uxNumProtocols; i++) {
+	if (xRc != 0)
+	{
+		for (BaseType_t i = 0; i < xEmber.pxServer->uxNumProtocols; i++)
+		{
 			struct freertos_sockaddr sockAddr;
 			Socket_t newSock;
 			socklen_t newSockLen = sizeof(sockAddr);
 			WebProtoServer_t *currProto = &xEmber.pxServer->pxProtocols[i];
 			if (currProto->xSock == FREERTOS_NO_SOCKET)
-			  continue;
+				continue;
 			newSock = FreeRTOS_accept(currProto->xSock, &sockAddr, &newSockLen);
 			if (newSock != FREERTOS_INVALID_SOCKET && newSock != FREERTOS_NO_SOCKET)
-			  prvAcceptNewClient(currProto, newSock);
+				prvAcceptNewClient(currProto, newSock);
 		}
 	}
 	// service existing connections/clients
 	currClient = xEmber.pxServer->pxClients;
-	while (currClient) {
+	while (currClient)
+	{
 		BaseType_t sockLive = FreeRTOS_issocketconnected(currClient->xSock);
-		if (sockLive == pdTRUE) {
+		if (sockLive == pdTRUE)
+		{
 			xRc = currClient->xWork(currClient);
 			if (xRc < 0)
-			currClient = prvRemoveClient(currClient);
+				currClient = prvRemoveClient(currClient);
 			else
-			currClient = currClient->pxNextClient;
+				currClient = currClient->pxNextClient;
 		}
-		else {
+		else
+		{
 			currClient = prvRemoveClient(currClient);
 		}
 	}
 }
 
-static void prvAcceptNewClient(WebProtoServer_t *pxProto, Socket_t xNewSock) {
+static void prvAcceptNewClient(WebProtoServer_t *pxProto, Socket_t xNewSock)
+{
 	xSemaphoreTake(xEmber.pxServer->xClientMutex, portMAX_DELAY);
 	TCPClient_t *newClient = 0;
 	// (try to) malloc enough space for a suitable new TCP client struct
-	newClient = (TCPClient_t*) pvPortMalloc(pxProto->uxClientSz);
-	if (!newClient) {
+	newClient = (TCPClient_t *)pvPortMalloc(pxProto->uxClientSz);
+	if (!newClient)
+	{
 		FreeRTOS_closesocket(xNewSock);
 		xSemaphoreGive(xEmber.pxServer->xClientMutex);
 		return;
@@ -276,7 +296,8 @@ static void prvAcceptNewClient(WebProtoServer_t *pxProto, Socket_t xNewSock) {
 	newClient->xWork = pxProto->xWorker;
 	newClient->xDelete = pxProto->xDelete;
 	// try to create the new client; if this fails, delete it and ditch
-	if (newClient->xCreator && newClient->xCreator(newClient) != 0) {
+	if (newClient->xCreator && newClient->xCreator(newClient) != 0)
+	{
 		FreeRTOS_closesocket(xNewSock);
 		vPortFree(newClient);
 		xSemaphoreGive(xEmber.pxServer->xClientMutex);
@@ -286,17 +307,18 @@ static void prvAcceptNewClient(WebProtoServer_t *pxProto, Socket_t xNewSock) {
 	newClient->pxPrevClient = 0;
 	newClient->pxNextClient = xEmber.pxServer->pxClients;
 	if (newClient->pxNextClient)
-	  newClient->pxNextClient->pxPrevClient = newClient;
+		newClient->pxNextClient->pxPrevClient = newClient;
 	xEmber.pxServer->pxClients = newClient;
 	// add the client socket to the server's socketset
 	FreeRTOS_FD_SET(xNewSock, xEmber.pxServer->xSockSet,
-	    eSELECT_READ | eSELECT_EXCEPT);
+					eSELECT_READ | eSELECT_EXCEPT);
 	xSemaphoreGive(xEmber.pxServer->xClientMutex);
 }
 
-static TCPClient_t* prvRemoveClient(TCPClient_t *pxClient) {
+static TCPClient_t *prvRemoveClient(TCPClient_t *pxClient)
+{
 	if (!pxClient)
-	  return 0;
+		return 0;
 	xSemaphoreTake(xEmber.pxServer->xClientMutex, portMAX_DELAY);
 	TCPClient_t *pxNextClient = pxClient->pxNextClient;
 	prvDropClient(pxClient);
@@ -304,25 +326,27 @@ static TCPClient_t* prvRemoveClient(TCPClient_t *pxClient) {
 	return pxNextClient;
 }
 
-static TCPClient_t* prvDropClient(TCPClient_t *pxClient) {
+static TCPClient_t *prvDropClient(TCPClient_t *pxClient)
+{
 	TCPClient_t *pxPrevClient = pxClient->pxPrevClient;
 	TCPClient_t *pxNextClient = pxClient->pxNextClient;
 	// close any system resources used by the client (file handles, typically)
 	if (pxClient->xDelete)
-	  pxClient->xDelete(pxClient);
+		pxClient->xDelete(pxClient);
 	// close the client's socket
-	if (pxClient->xSock != FREERTOS_NO_SOCKET) {
+	if (pxClient->xSock != FREERTOS_NO_SOCKET)
+	{
 		FreeRTOS_FD_CLR(pxClient->xSock, xEmber.pxServer->xSockSet, eSELECT_ALL);
 		FreeRTOS_closesocket(pxClient->xSock);
 		pxClient->xSock = FREERTOS_NO_SOCKET;
 	}
 	// unlink the target client from the list
 	if (pxPrevClient)
-	  pxPrevClient->pxNextClient = pxNextClient;
+		pxPrevClient->pxNextClient = pxNextClient;
 	if (pxNextClient)
-	  pxNextClient->pxPrevClient = pxPrevClient;
+		pxNextClient->pxPrevClient = pxPrevClient;
 	// if the target client was the head of the list, point the head at the next entry
 	// (which might be NULL)
 	if (pxClient == pxClient->pxParent->pxClients)
-	  pxClient->pxParent->pxClients = pxNextClient;
+		pxClient->pxParent->pxClients = pxNextClient;
 }

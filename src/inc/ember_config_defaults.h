@@ -59,32 +59,41 @@
  * @def emberTCP_RCV_BUFFER_SIZE
  * @brief The size (in bytes) of the EMBER TCP receive buffer
  */
-#define	emberTCP_RCV_BUFFER_SIZE   (2048)
+#ifndef emberTCP_RCV_BUFFER_SIZE
+#define emberTCP_RCV_BUFFER_SIZE (2048)
+#endif
 
 /**
  * @def emberTCP_SND_BUFFER_SIZE
  * @brief The size (in bytes) of the EMBER TCP send buffer
  */
-#define	emberTCP_SND_BUFFER_SIZE   (2048)
+#ifndef emberTCP_SND_BUFFER_SIZE
+#define emberTCP_SND_BUFFER_SIZE (2048)
+#endif
 
 /**
  * @def emberHTTP_ROUTE_PARTS
  * @brief The (maximum + 1) number of request URL parts that can make up a
  *   route
  */
-#define	emberHTTP_ROUTE_PARTS      (9)
+#ifndef emberHTTP_ROUTE_PARTS
+#define emberHTTP_ROUTE_PARTS (9)
+#endif
 
 /**
  * @def emberHTTP_PARAM_PARTS
  * @brief The (maximum + 1) number of parameters in any request URL
  */
-#define	emberHTTP_PARAM_PARTS      (9)
+#ifndef emberHTTP_PARAM_PARTS
+#define emberHTTP_PARAM_PARTS (9)
+#endif
 
 /**
  * @def emberHTTP_HEADER_PARTS
  * @brief The (maximum + 1) number of headers (of interest) in any HTTP request
  */
-#define	emberHTTP_HEADER_PARTS     (10)
-
+#ifndef emberHTTP_HEADER_PARTS
+#define emberHTTP_HEADER_PARTS (10)
+#endif
 
 #endif /* _EMBER_CONFIG_DEFAULTS_H_ */

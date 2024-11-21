@@ -42,7 +42,6 @@
  *
  */
 
-
 #ifndef EMBER_V0_0_INC_WEBSOCKETD_H_
 #define EMBER_V0_0_INC_WEBSOCKETD_H_
 
@@ -56,9 +55,9 @@
  public constants
  ===============================================*/
 
-#define WEBSOCKETD_CREATOR_METHOD     (NULL)
-#define WEBSOCKETD_WORKER_METHOD      (xWebsocketWork)
-#define WEBSOCKETD_DELETE_METHOD      (NULL)
+#define WEBSOCKETD_CREATOR_METHOD (NULL)
+#define WEBSOCKETD_WORKER_METHOD (xWebsocketWork)
+#define WEBSOCKETD_DELETE_METHOD (NULL)
 
 /*===============================================
  public data prototypes
@@ -68,8 +67,7 @@
  * @fn BaseType_t (*WebsocketMessageHandler)(void*)
  * @brief Signature for websocket message handler functions.
  */
-typedef BaseType_t (*WebsocketMessageHandler_t)(void*);
-
+typedef BaseType_t (*WebsocketMessageHandler_t)(void *);
 
 /**
  * @struct xWEBSOCKET_FLAGS
@@ -77,14 +75,15 @@ typedef BaseType_t (*WebsocketMessageHandler_t)(void*);
  *   websocket message header.
  *
  */
-struct __attribute__((packed)) xWEBSOCKET_FLAGS {
+struct __attribute__((packed)) xWEBSOCKET_FLAGS
+{
 	// byte[0]
-	unsigned opcode :4;
-	unsigned rsv :3;
-	unsigned fin :1;
+	unsigned opcode : 4;
+	unsigned rsv : 3;
+	unsigned fin : 1;
 	// byte[1]
-	unsigned payLen :7;
-	unsigned mask :1;
+	unsigned payLen : 7;
+	unsigned mask : 1;
 };
 typedef struct xWEBSOCKET_FLAGS WebsocketFlags_t;
 
@@ -100,9 +99,9 @@ typedef struct xWEBSOCKET_FLAGS WebsocketFlags_t;
  * over and above the TCP_CLIENT_PROPERTIES, compared to 156 for the
  * websocket struct.
  */
-struct xWEBSOCKET_CLIENT {
-	TCP_CLIENT_PROPERTIES
-		;
+struct xWEBSOCKET_CLIENT
+{
+	TCP_CLIENT_PROPERTIES;
 	/* --- Keep at the top  --- */
 	struct xWEBSOCKET_FLAGS xFlags;
 	uint16_t usMaskKeyL;
@@ -119,13 +118,14 @@ typedef struct xWEBSOCKET_CLIENT WebsocketClient_t;
  * @enum eWebsocketOpcode
  * @brief Enumeration of websocket message opcodes.
  */
-typedef enum {
-	eWSOp_Continue = 0,/**< eWSOp_Continue */
-	eWSOp_Text = 1,    /**< eWSOp_Text */
-	eWSOp_Binary = 2,  /**< eWSOp_Binary */
-	eWSOp_Close = 8,   /**< eWSOp_Close */
-	eWSOp_Ping = 9,    /**< eWSOp_Ping */
-	eWSOp_Pong = 10,   /**< eWSOp_Pong */
+typedef enum
+{
+	eWSOp_Continue = 0, /**< eWSOp_Continue */
+	eWSOp_Text = 1,		/**< eWSOp_Text */
+	eWSOp_Binary = 2,	/**< eWSOp_Binary */
+	eWSOp_Close = 8,	/**< eWSOp_Close */
+	eWSOp_Ping = 9,		/**< eWSOp_Ping */
+	eWSOp_Pong = 10,	/**< eWSOp_Pong */
 } eWebsocketOpcode;
 
 /**
@@ -133,7 +133,8 @@ typedef enum {
  * @brief Basic websocket send (transmit) header. Used for messages with
  *   size <= 125 bytes.
  */
-union xWEBSOCKET_SND_HEADER {
+union xWEBSOCKET_SND_HEADER
+{
 	uint8_t pucBytes[2];
 	WebsocketFlags_t xFlags;
 };
@@ -144,9 +145,11 @@ typedef union xWEBSOCKET_SND_HEADER WebsocketSendHeader_t;
  * @brief 16b extended websocket send (transmit) header. Used for messages with
  *   65535 <= size < 125 bytes.
  */
-union xWEBSOCKET_SND_HEADER_X16 {
+union xWEBSOCKET_SND_HEADER_X16
+{
 	uint8_t bytes[4];
-	struct __attribute__((packed)) {
+	struct __attribute__((packed))
+	{
 		WebsocketFlags_t xFlags;
 		uint16_t usPayLenX16;
 	};
@@ -158,9 +161,11 @@ typedef union xWEBSOCKET_SND_HEADER_X16 WebsocketSendHeaderX16_t;
  * @brief Basic websocket receive header. Used for messages with size <= 125
  *   bytes.
  */
-union xWEBSOCKET_HEADER {
+union xWEBSOCKET_HEADER
+{
 	uint8_t pucBytes[6];
-	struct __attribute__((packed)) {
+	struct __attribute__((packed))
+	{
 		WebsocketFlags_t xFlags;
 		uint16_t usMaskKeyL;
 		uint16_t usMaskKeyU;
@@ -173,9 +178,11 @@ typedef union xWEBSOCKET_HEADER WebsocketHeader_t;
  * @brief 16b extended websocket receive header. Used for messages with
  *   65535 <= size < 125 bytes.
  */
-union xWEBSOCKET_HEADER_X16 {
+union xWEBSOCKET_HEADER_X16
+{
 	uint8_t pucBytes[8];
-	struct __attribute__((packed)) {
+	struct __attribute__((packed))
+	{
 		WebsocketFlags_t xFlags;
 		uint16_t usPayLenX16;
 		uint16_t usMaskKeyL;
@@ -189,16 +196,18 @@ typedef union xWEBSOCKET_HEADER_X16 WebsocketHeaderX16_t;
  * @brief 64b extended websocket receive header. Used for messages with
  *   2^64 <= size < 65535 bytes.
  */
-union xWEBSOCKET_HEADER_X64 {
+union xWEBSOCKET_HEADER_X64
+{
 	uint8_t pucBytes[16];
-	struct __attribute__((packed)) {
+	struct __attribute__((packed))
+	{
 		WebsocketFlags_t xFlags;
 		uint16_t usPayLenX16;
 		uint32_t usPayLenX48;
 		uint16_t usMaskKeyL;
 		uint16_t usPayLenX64;
 		uint16_t usMaskKeyU;
-		unsigned :16;
+		unsigned : 16;
 	};
 };
 typedef union xWEBSOCKET_HEADER_X64 WebsocketHeaderX64_t;
@@ -207,21 +216,22 @@ typedef union xWEBSOCKET_HEADER_X64 WebsocketHeaderX64_t;
  * @enum eWebsocketStatus
  * @brief Enumeration of possible websocket close status codes.
  */
-typedef enum {
-	eWS_NORMAL_CLOSURE = 1000,      /**< eWS_NORMAL_CLOSURE */
-	eWS_GOING_AWAY = 1001,          /**< eWS_GOING_AWAY */
-	eWS_PROTOCOL_ERROR = 1002,      /**< eWS_PROTOCOL_ERROR */
-	eWS_UNSUPPORTED_DATA = 1003,    /**< eWS_UNSUPPORTED_DATA */
-	eWS_NO_STATUS_RCDV = 1005,      /**< eWS_NO_STATUS_RCDV */
-	eWS_ABNORMAL_CLOSURE = 1006,    /**< eWS_ABNORMAL_CLOSURE */
-	eWS_INVALID_PAYLOAD_DATA = 1007,/**< eWS_INVALID_PAYLOAD_DATA */
-	eWS_POLICY_VIOLATION = 1008,    /**< eWS_POLICY_VIOLATION */
-	eWS_MESSAGE_TOO_BIG = 1009,     /**< eWS_MESSAGE_TOO_BIG */
-	eWS_MANDATORY_EXTENSION = 1010, /**< eWS_MANDATORY_EXTENSION */
-	eWS_INTERNAL_ERROR = 1011,      /**< eWS_INTERNAL_ERROR */
-	eWS_SERVICE_RESTART = 1012,     /**< eWS_SERVICE_RESTART */
-	eWS_TRY_AGAIN_LATER = 1013,     /**< eWS_TRY_AGAIN_LATER */
-	eWS_BAD_GATEWAY = 1014,         /**< eWS_BAD_GATEWAY */
+typedef enum
+{
+	eWS_NORMAL_CLOSURE = 1000,		 /**< eWS_NORMAL_CLOSURE */
+	eWS_GOING_AWAY = 1001,			 /**< eWS_GOING_AWAY */
+	eWS_PROTOCOL_ERROR = 1002,		 /**< eWS_PROTOCOL_ERROR */
+	eWS_UNSUPPORTED_DATA = 1003,	 /**< eWS_UNSUPPORTED_DATA */
+	eWS_NO_STATUS_RCDV = 1005,		 /**< eWS_NO_STATUS_RCDV */
+	eWS_ABNORMAL_CLOSURE = 1006,	 /**< eWS_ABNORMAL_CLOSURE */
+	eWS_INVALID_PAYLOAD_DATA = 1007, /**< eWS_INVALID_PAYLOAD_DATA */
+	eWS_POLICY_VIOLATION = 1008,	 /**< eWS_POLICY_VIOLATION */
+	eWS_MESSAGE_TOO_BIG = 1009,		 /**< eWS_MESSAGE_TOO_BIG */
+	eWS_MANDATORY_EXTENSION = 1010,	 /**< eWS_MANDATORY_EXTENSION */
+	eWS_INTERNAL_ERROR = 1011,		 /**< eWS_INTERNAL_ERROR */
+	eWS_SERVICE_RESTART = 1012,		 /**< eWS_SERVICE_RESTART */
+	eWS_TRY_AGAIN_LATER = 1013,		 /**< eWS_TRY_AGAIN_LATER */
+	eWS_BAD_GATEWAY = 1014,			 /**< eWS_BAD_GATEWAY */
 } eWebsocketStatus;
 
 /**
@@ -229,33 +239,33 @@ typedef enum {
  * @brief Mapping of websocket close status code enumerated at
  *   `eWebsocketStatus` to corresponding text description.
  */
-struct xWEBSOCKET_STATUS_DESC {
+struct xWEBSOCKET_STATUS_DESC
+{
 	BaseType_t xLen;
 	const char *const pcText;
 	BaseType_t xStatus;
 };
 typedef struct xWEBSOCKET_STATUS_DESC WebsocketStatusDescriptor_t;
 static const WebsocketStatusDescriptor_t WebsocketStatuses[] = {
-    { 14, "Normal closure", eWS_NORMAL_CLOSURE },
-    { 10, "Going away", eWS_GOING_AWAY },
-    { 14, "Protocol error", eWS_PROTOCOL_ERROR },
-    { 16, "Unsupported data", eWS_UNSUPPORTED_DATA },
-    { 18, "No status received", eWS_NO_STATUS_RCDV },
-    { 16, "Abnormal closure", eWS_ABNORMAL_CLOSURE },
-    { 20, "Invalid payload data", eWS_INVALID_PAYLOAD_DATA },
-    { 16, "Policy violation", eWS_POLICY_VIOLATION },
-    { 15, "Message too big", eWS_MESSAGE_TOO_BIG },
-    { 19, "Mandatory extension", eWS_MANDATORY_EXTENSION },
-    { 14, "Internal error", eWS_INTERNAL_ERROR },
-    { 15, "Service restart", eWS_SERVICE_RESTART },
-    { 15, "Try again later", eWS_TRY_AGAIN_LATER },
-    { 11, "Bad gateway", eWS_BAD_GATEWAY },
-    { 0, "", -1 },
+	{14, "Normal closure", eWS_NORMAL_CLOSURE},
+	{10, "Going away", eWS_GOING_AWAY},
+	{14, "Protocol error", eWS_PROTOCOL_ERROR},
+	{16, "Unsupported data", eWS_UNSUPPORTED_DATA},
+	{18, "No status received", eWS_NO_STATUS_RCDV},
+	{16, "Abnormal closure", eWS_ABNORMAL_CLOSURE},
+	{20, "Invalid payload data", eWS_INVALID_PAYLOAD_DATA},
+	{16, "Policy violation", eWS_POLICY_VIOLATION},
+	{15, "Message too big", eWS_MESSAGE_TOO_BIG},
+	{19, "Mandatory extension", eWS_MANDATORY_EXTENSION},
+	{14, "Internal error", eWS_INTERNAL_ERROR},
+	{15, "Service restart", eWS_SERVICE_RESTART},
+	{15, "Try again later", eWS_TRY_AGAIN_LATER},
+	{11, "Bad gateway", eWS_BAD_GATEWAY},
+	{0, "", -1},
 };
-static const BaseType_t numWebsocketStatusDescs = sizeof(WebsocketStatuses)
-    / sizeof(WebsocketStatusDescriptor_t);
+static const BaseType_t numWebsocketStatusDescs = sizeof(WebsocketStatuses) / sizeof(WebsocketStatusDescriptor_t);
 static const WebsocketStatusDescriptor_t *defaultWebsocketStatus =
-    &WebsocketStatuses[1];
+	&WebsocketStatuses[1];
 
 /*===============================================
  public function prototypes
@@ -284,8 +294,8 @@ BaseType_t xWebsocketWork(void *pxc);
  * @return A pointer to a `WebsocketStatusDescriptor_t` that includes the status
  *   text.
  */
-const WebsocketStatusDescriptor_t* const pxGetWebsocketStatusMessage(
-    const BaseType_t xStatus);
+const WebsocketStatusDescriptor_t *const pxGetWebsocketStatusMessage(
+	const BaseType_t xStatus);
 
 /**
  * @fn BaseType_t xSendWebsocketHeader(void*, const eWebsocketOpcode, const size_t)
@@ -301,9 +311,9 @@ const WebsocketStatusDescriptor_t* const pxGetWebsocketStatusMessage(
  *   > 0 the number of bytes transmitted
  */
 BaseType_t xSendWebsocketHeader(
-    void *pxc,
-    const eWebsocketOpcode eCode,
-    const size_t uxPayloadSz);
+	void *pxc,
+	const eWebsocketOpcode eCode,
+	const size_t uxPayloadSz);
 
 /**
  * @fn BaseType_t xSendWebsocketPayload(void*, const void*, const size_t)
@@ -321,9 +331,9 @@ BaseType_t xSendWebsocketHeader(
  *   > 0 the number of bytes transmitted
  */
 BaseType_t xSendWebsocketPayload(
-    void *pxc,
-    const void *pvPayload,
-    const size_t uxLen);
+	void *pxc,
+	const void *pvPayload,
+	const size_t uxLen);
 
 /**
  * @fn BaseType_t xSendWebsocketTextMessage(void*, const char*, const size_t)
@@ -338,9 +348,9 @@ BaseType_t xSendWebsocketPayload(
  *   > 0 the number of bytes transmitted
  */
 BaseType_t xSendWebsocketTextMessage(
-    void *pxc,
-    const char *pcMsg,
-    const size_t uxLen);
+	void *pxc,
+	const char *pcMsg,
+	const size_t uxLen);
 
 /**
  * @fn BaseType_t xSendWebsocketBinaryMessage(void*, const char*, const size_t)
@@ -355,8 +365,8 @@ BaseType_t xSendWebsocketTextMessage(
  *   > 0 the number of bytes transmitted
  */
 BaseType_t xSendWebsocketBinaryMessage(
-    void *pxc,
-    const char *pcMsg,
-    const size_t uxLen);
+	void *pxc,
+	const char *pcMsg,
+	const size_t uxLen);
 
 #endif /* EMBER_V0_0_INC_WEBSOCKETD_H_ */

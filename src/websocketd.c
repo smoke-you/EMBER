@@ -65,16 +65,16 @@ static BaseType_t prvParseFrameX16(WebsocketClient_t *pxClient);
 static BaseType_t prvParseFrameX64(WebsocketClient_t *pxClient);
 static void prvMaskPayload(WebsocketClient_t *pxClient);
 static BaseType_t prvSendClose(
-    WebsocketClient_t *pxClient,
-    const BaseType_t xCode);
+	WebsocketClient_t *pxClient,
+	const BaseType_t xCode);
 static BaseType_t prvSendMessagePayload(
-    WebsocketClient_t *pxClient,
-    const void *pvPayload,
-    const size_t uxLen);
+	WebsocketClient_t *pxClient,
+	const void *pvPayload,
+	const size_t uxLen);
 static BaseType_t prvSendMessageHeader(
-    WebsocketClient_t *pxClient,
-    const eWebsocketOpcode eCode,
-    const size_t uxPayloadSz);
+	WebsocketClient_t *pxClient,
+	const eWebsocketOpcode eCode,
+	const size_t uxPayloadSz);
 
 /*===============================================
  private global variables
@@ -92,89 +92,96 @@ static BaseType_t prvSendMessageHeader(
  public functions
  ===============================================*/
 
-BaseType_t xWebsocketWork(void *pxc) {
+BaseType_t xWebsocketWork(void *pxc)
+{
 	BaseType_t xRc;
-	WebsocketClient_t *pxClient = (WebsocketClient_t*) pxc;
+	WebsocketClient_t *pxClient = (WebsocketClient_t *)pxc;
 	char *rcvBuff = pxClient->pxParent->pcRcvBuff;
 	size_t rcvBuffSz = emberTCP_RCV_BUFFER_SIZE;
-	xRc = FreeRTOS_recv(pxClient->xSock, (void*) rcvBuff, rcvBuffSz, 0);
+	xRc = FreeRTOS_recv(pxClient->xSock, (void *)rcvBuff, rcvBuffSz, 0);
 	if (xRc <= 0) // -ve is an error; 0 is "no data received"; either way, return it
-	  return xRc;
-	if (((WebsocketHeader_t*) rcvBuff)->xFlags.payLen < 126)
-	xRc = prvParseFrame(pxClient);
-	else if (((WebsocketHeader_t*) rcvBuff)->xFlags.payLen == 126)
-	xRc = prvParseFrameX16(pxClient);
+		return xRc;
+	if (((WebsocketHeader_t *)rcvBuff)->xFlags.payLen < 126)
+		xRc = prvParseFrame(pxClient);
+	else if (((WebsocketHeader_t *)rcvBuff)->xFlags.payLen == 126)
+		xRc = prvParseFrameX16(pxClient);
 	else
-	xRc = prvParseFrameX64(pxClient);
+		xRc = prvParseFrameX64(pxClient);
 	if (xRc < 0)
-	  return -pdFREERTOS_ERRNO_EBADE;
-	switch (pxClient->xFlags.opcode) {
-		case eWSOp_Continue:
-			return 0;
-		case eWSOp_Text:
-			if (pxClient->pxTxtHandler)
-				return pxClient->pxTxtHandler(pxc);
-			else {
-				prvSendClose(pxClient, eWS_UNSUPPORTED_DATA);
+		return -pdFREERTOS_ERRNO_EBADE;
+	switch (pxClient->xFlags.opcode)
+	{
+	case eWSOp_Continue:
+		return 0;
+	case eWSOp_Text:
+		if (pxClient->pxTxtHandler)
+			return pxClient->pxTxtHandler(pxc);
+		else
+		{
+			prvSendClose(pxClient, eWS_UNSUPPORTED_DATA);
 			return -1;
-			}
-		case eWSOp_Binary:
-			if (pxClient->pxBinHandler)
-				return pxClient->pxBinHandler(pxc);
-			else
-				prvSendClose(pxClient, eWS_UNSUPPORTED_DATA);
-			return -1;
-		case eWSOp_Close:
-			((WebsocketHeader_t*) rcvBuff)->xFlags.fin = 1;
-			FreeRTOS_send(pxClient->xSock, (const void*) rcvBuff,
-					pxClient->xPayloadSz + sizeof(WebsocketHeader_t), 0);
-			return -1;
-		case eWSOp_Ping:
-			((WebsocketHeader_t*) rcvBuff)->xFlags.opcode = eWSOp_Pong;
-			((WebsocketHeader_t*) rcvBuff)->xFlags.fin = 1;
-			return FreeRTOS_send(pxClient->xSock, (const void*) rcvBuff,
-					pxClient->xPayloadSz + sizeof(WebsocketHeader_t), 0);
-		case eWSOp_Pong:
-			return 0;
-		default:
-			prvSendClose(pxClient, eWS_PROTOCOL_ERROR);
-			return -1;
+		}
+	case eWSOp_Binary:
+		if (pxClient->pxBinHandler)
+			return pxClient->pxBinHandler(pxc);
+		else
+			prvSendClose(pxClient, eWS_UNSUPPORTED_DATA);
+		return -1;
+	case eWSOp_Close:
+		((WebsocketHeader_t *)rcvBuff)->xFlags.fin = 1;
+		FreeRTOS_send(pxClient->xSock, (const void *)rcvBuff,
+					  pxClient->xPayloadSz + sizeof(WebsocketHeader_t), 0);
+		return -1;
+	case eWSOp_Ping:
+		((WebsocketHeader_t *)rcvBuff)->xFlags.opcode = eWSOp_Pong;
+		((WebsocketHeader_t *)rcvBuff)->xFlags.fin = 1;
+		return FreeRTOS_send(pxClient->xSock, (const void *)rcvBuff,
+							 pxClient->xPayloadSz + sizeof(WebsocketHeader_t), 0);
+	case eWSOp_Pong:
+		return 0;
+	default:
+		prvSendClose(pxClient, eWS_PROTOCOL_ERROR);
+		return -1;
 	}
 }
 
-const WebsocketStatusDescriptor_t* const pxGetWebsocketStatusMessage(
-    const BaseType_t status) {
+const WebsocketStatusDescriptor_t *const pxGetWebsocketStatusMessage(
+	const BaseType_t status)
+{
 	WebsocketStatusDescriptor_t *sp =
-	    (WebsocketStatusDescriptor_t*) &WebsocketStatuses[0];
-	while (sp->xLen != 0) {
+		(WebsocketStatusDescriptor_t *)&WebsocketStatuses[0];
+	while (sp->xLen != 0)
+	{
 		if (sp->xStatus == status)
-		  return sp;
+			return sp;
 		sp++;
 	}
 	return defaultWebsocketStatus;
 }
 
 BaseType_t xSendWebsocketTextMessage(
-    void *pxc,
-    const char *msg,
-    const size_t len) {
-	WebsocketClient_t *pxClient = (WebsocketClient_t*) pxc;
+	void *pxc,
+	const char *msg,
+	const size_t len)
+{
+	WebsocketClient_t *pxClient = (WebsocketClient_t *)pxc;
 	BaseType_t xRc;
 	xRc = prvSendMessageHeader(pxClient, eWSOp_Text, len);
 	if (xRc < 0)
-	  return xRc;
+		return xRc;
 	return prvSendMessagePayload(pxClient, msg, len);
 }
 
 BaseType_t xSendWebsocketBinaryMessage(
-    void *pxc,
-    const char *msg,
-    const size_t len) {
-	WebsocketClient_t *pxClient = (WebsocketClient_t*) pxc;
+	void *pxc,
+	const char *msg,
+	const size_t len)
+{
+	WebsocketClient_t *pxClient = (WebsocketClient_t *)pxc;
 	BaseType_t xRc;
 	xRc = prvSendMessageHeader(pxClient, eWSOp_Binary, len);
 	if (xRc < 0)
-	  return xRc;
+		return xRc;
 	return prvSendMessagePayload(pxClient, msg, len);
 }
 
@@ -182,9 +189,10 @@ BaseType_t xSendWebsocketBinaryMessage(
  private functions
  ===============================================*/
 
-static BaseType_t prvParseFrame(WebsocketClient_t *pxClient) {
+static BaseType_t prvParseFrame(WebsocketClient_t *pxClient)
+{
 	char *pcRcvBuff = pxClient->pxParent->pcRcvBuff;
-	WebsocketHeader_t *pxHeader = ((WebsocketHeader_t*) pcRcvBuff);
+	WebsocketHeader_t *pxHeader = ((WebsocketHeader_t *)pcRcvBuff);
 	pxClient->pcPayload = &pcRcvBuff[sizeof(WebsocketHeader_t)];
 	pxClient->xPayloadSz = pxHeader->xFlags.payLen;
 	pxClient->xFlags = pxHeader->xFlags;
@@ -194,12 +202,13 @@ static BaseType_t prvParseFrame(WebsocketClient_t *pxClient) {
 	return 0;
 }
 
-static BaseType_t prvParseFrameX16(WebsocketClient_t *pxClient) {
+static BaseType_t prvParseFrameX16(WebsocketClient_t *pxClient)
+{
 	char *pcRcvBuff = pxClient->pxParent->pcRcvBuff;
-	WebsocketHeaderX16_t *pxHeader = ((WebsocketHeaderX16_t*) pcRcvBuff);
+	WebsocketHeaderX16_t *pxHeader = ((WebsocketHeaderX16_t *)pcRcvBuff);
 	// if we know that the frame doesn't fit in the receive buffer, start the connection close process
-	if (pxHeader->xFlags.payLen
-	    > (sizeof(pxClient->pxParent->pcRcvBuff) - sizeof(WebsocketHeaderX16_t))) {
+	if (pxHeader->xFlags.payLen > (sizeof(pxClient->pxParent->pcRcvBuff) - sizeof(WebsocketHeaderX16_t)))
+	{
 		prvSendClose(pxClient, eWS_MESSAGE_TOO_BIG);
 		return -1;
 	}
@@ -212,65 +221,73 @@ static BaseType_t prvParseFrameX16(WebsocketClient_t *pxClient) {
 	return 0;
 }
 
-static BaseType_t prvParseFrameX64(WebsocketClient_t *pxClient) {
-// never accept large frames: respond with a "1009 message too big" closing frame
+static BaseType_t prvParseFrameX64(WebsocketClient_t *pxClient)
+{
+	// never accept large frames: respond with a "1009 message too big" closing frame
 	prvSendClose(pxClient, eWS_MESSAGE_TOO_BIG);
 	return -1;
 }
 
-static void prvMaskPayload(WebsocketClient_t *pxClient) {
-	uint16_t *pusMaskptr = (uint16_t*) pxClient->pcPayload;
-	while (pusMaskptr < (uint16_t*) (&pxClient->pcPayload[pxClient->xPayloadSz])) {
+static void prvMaskPayload(WebsocketClient_t *pxClient)
+{
+	uint16_t *pusMaskptr = (uint16_t *)pxClient->pcPayload;
+	while (pusMaskptr < (uint16_t *)(&pxClient->pcPayload[pxClient->xPayloadSz]))
+	{
 		*pusMaskptr++ ^= pxClient->usMaskKeyL;
 		*pusMaskptr++ ^= pxClient->usMaskKeyU;
 	}
 }
 
 static BaseType_t prvSendClose(
-    WebsocketClient_t *pxClient,
-    const BaseType_t xCode) {
+	WebsocketClient_t *pxClient,
+	const BaseType_t xCode)
+{
 	char *pcSndBuff = pxClient->pxParent->pcSndBuff;
 	size_t uxSndBuffSz = sizeof(pxClient->pxParent->pcSndBuff);
 	size_t uxMsglen = snprintf(pcSndBuff, uxSndBuffSz, "%d %s", xCode,
-	    pxGetWebsocketStatusMessage(xCode)->pcText);
-	return FreeRTOS_send(pxClient->xSock, (const void*) pcSndBuff, uxMsglen, 0);
+							   pxGetWebsocketStatusMessage(xCode)->pcText);
+	return FreeRTOS_send(pxClient->xSock, (const void *)pcSndBuff, uxMsglen, 0);
 }
 
 static BaseType_t prvSendMessageHeader(
-    WebsocketClient_t *pxClient,
-    const eWebsocketOpcode eCode,
-    const size_t uxPayloadSz) {
+	WebsocketClient_t *pxClient,
+	const eWebsocketOpcode eCode,
+	const size_t uxPayloadSz)
+{
 	BaseType_t xRc;
 	char *pcSndBuff = pxClient->pxParent->pcSndBuff;
-	if (uxPayloadSz < 126) {
-		WebsocketSendHeader_t *pxHeader = (WebsocketSendHeader_t*) pcSndBuff;
+	if (uxPayloadSz < 126)
+	{
+		WebsocketSendHeader_t *pxHeader = (WebsocketSendHeader_t *)pcSndBuff;
 		memset(pxHeader, 0, sizeof(WebsocketSendHeader_t));
 		pxHeader->xFlags.fin = 1;
 		pxHeader->xFlags.opcode = eCode;
 		pxHeader->xFlags.payLen = uxPayloadSz;
-		return FreeRTOS_send(pxClient->xSock, (const void*) pcSndBuff,
-		    sizeof(WebsocketSendHeader_t), 0);
+		return FreeRTOS_send(pxClient->xSock, (const void *)pcSndBuff,
+							 sizeof(WebsocketSendHeader_t), 0);
 	}
-	else if (uxPayloadSz < 65536) {
-		WebsocketSendHeaderX16_t *pxHeader = (WebsocketSendHeaderX16_t*) pcSndBuff;
+	else if (uxPayloadSz < 65536)
+	{
+		WebsocketSendHeaderX16_t *pxHeader = (WebsocketSendHeaderX16_t *)pcSndBuff;
 		memset(pxHeader, 0, sizeof(WebsocketSendHeaderX16_t));
 		pxHeader->xFlags.fin = 1;
 		pxHeader->xFlags.opcode = eCode;
 		pxHeader->xFlags.payLen = 126;
-		pxHeader->usPayLenX16 = uxPayloadSz;
-		return FreeRTOS_send(pxClient->xSock, (const void*) pcSndBuff,
-		    sizeof(WebsocketSendHeaderX16_t), 0);
+		pxHeader->usPayLenX16 = FreeRTOS_htons(uxPayloadSz);
+		return FreeRTOS_send(pxClient->xSock, (const void *)pcSndBuff,
+							 sizeof(WebsocketSendHeaderX16_t), 0);
 	}
-	else {
+	else
+	{
 		prvSendClose(pxClient, eWS_INTERNAL_ERROR);
 		return -1;
 	}
 }
 
 static BaseType_t prvSendMessagePayload(
-    WebsocketClient_t *pxClient,
-    const void *pvPayload,
-    const size_t uxLen) {
+	WebsocketClient_t *pxClient,
+	const void *pvPayload,
+	const size_t uxLen)
+{
 	return FreeRTOS_send(pxClient->xSock, pvPayload, uxLen, 0);
 }
-

@@ -88,6 +88,6 @@ void Ember_DeInit();
  * @param pvArg A pointer to the data that will be passed, as the second argument,
  * to `actionfunc` each time it is executed.
  */
-void Ember_SelectClients(BaseType_t (*xSelect)(void*, void*), void *pvArg);
+void Ember_SelectClients(BaseType_t (*xSelect)(void *, void *), void *pvArg);
 
 #endif // SOURCE_INCLUDE_EMBER_H_

@@ -60,19 +60,19 @@
  private data prototypes
  ===============================================*/
 
-typedef struct {
+typedef struct
+{
 	bool bReady;
 	TaskHandle_t xPID;
 	const configSTACK_DEPTH_TYPE xStackSz;
 } SocketCounterConfig_t;
 
-
-typedef struct {
-	const char * pcPath;
-	char * pcMsg;
+typedef struct
+{
+	const char *pcPath;
+	char *pcMsg;
 	size_t xMsgLen;
 } SocketCounterActionArgs_t;
-
 
 /*===============================================
  private function prototypes
@@ -85,7 +85,7 @@ static BaseType_t prvUpdateWebSockets(void *pxc, void *pvArg);
  private global variables
  ===============================================*/
 
-static SocketCounterConfig_t prvCfg = { false, 0, 512 };
+static SocketCounterConfig_t prvCfg = {false, 0, 512};
 static UBaseType_t prvCount = 0;
 
 /*===============================================
@@ -100,38 +100,42 @@ static UBaseType_t prvCount = 0;
  public functions
  ===============================================*/
 
-void vSocketCounter_Init(void) {
+void vSocketCounter_Init(void)
+{
 	if (prvCfg.bReady)
 		return;
-	xTaskCreate(prvSocketCounter_Service, (const char*) "socketCounter", prvCfg.xStackSz, 0, tskIDLE_PRIORITY, &prvCfg.xPID);
+	xTaskCreate(prvSocketCounter_Service, (const char *)"socketCounter", prvCfg.xStackSz, 0, tskIDLE_PRIORITY, &prvCfg.xPID);
 	prvCfg.bReady = true;
 }
 
-void vSocketCounter_DeInit(void) {
+void vSocketCounter_DeInit(void)
+{
 	if (!prvCfg.bReady)
-	  return;
+		return;
 	vTaskDelete(prvCfg.xPID);
 	prvCfg.xPID = 0;
 	prvCfg.bReady = false;
 }
 
-
-BaseType_t xSocketCounterMessageHandler(void *pxc) {
-	WebsocketClient_t *pxClient = (WebsocketClient_t*) pxc;
+BaseType_t xSocketCounterMessageHandler(void *pxc)
+{
+	WebsocketClient_t *pxClient = (WebsocketClient_t *)pxc;
 	char *pcFieldVal;
 	size_t xFieldSz;
 	JSONTypes_t xFieldType;
 	JSONStatus_t xStatus;
-	xStatus = JSON_Validate(pxClient-> pcPayload, pxClient->xPayloadSz);
+	xStatus = JSON_Validate(pxClient->pcPayload, pxClient->xPayloadSz);
 	if (xStatus != JSONSuccess)
 		return -1;
-	xStatus = JSON_SearchT(pxClient-> pcPayload, pxClient->xPayloadSz, "get", 3, &pcFieldVal, &xFieldSz, &xFieldType);
-	if (xStatus == JSONSuccess) {
+	xStatus = JSON_SearchT(pxClient->pcPayload, pxClient->xPayloadSz, "get", 3, &pcFieldVal, &xFieldSz, &xFieldType);
+	if (xStatus == JSONSuccess)
+	{
 		char msg[32];
 		return xSendWebsocketTextMessage(pxc, msg, snprintf(msg, sizeof(msg), "{\"count\":%d}", prvCount));
 	}
-	xStatus = JSON_SearchT(pxClient-> pcPayload, pxClient->xPayloadSz, "set", 3, &pcFieldVal, &xFieldSz, &xFieldType);
-	if (xStatus == JSONSuccess && xFieldType == JSONNumber) {
+	xStatus = JSON_SearchT(pxClient->pcPayload, pxClient->xPayloadSz, "set", 3, &pcFieldVal, &xFieldSz, &xFieldType);
+	if (xStatus == JSONSuccess && xFieldType == JSONNumber)
+	{
 		prvCount = atoi(pcFieldVal);
 		return 0;
 	}
@@ -142,10 +146,12 @@ BaseType_t xSocketCounterMessageHandler(void *pxc) {
  private functions
  ===============================================*/
 
-static void prvSocketCounter_Service(void *pvArgs) {
+static void prvSocketCounter_Service(void *pvArgs)
+{
 	char pcMsg[32];
-	SocketCounterActionArgs_t xSelectArg = { "/count", pcMsg, 0 };
-	while (true) {
+	SocketCounterActionArgs_t xSelectArg = {"/count", pcMsg, 0};
+	while (true)
+	{
 		xSelectArg.xMsgLen = snprintf(pcMsg, sizeof(pcMsg), "{\"count\":%d}", prvCount);
 		Ember_SelectClients(prvUpdateWebSockets, &xSelectArg);
 		vTaskDelay(1000);
@@ -153,14 +159,13 @@ static void prvSocketCounter_Service(void *pvArgs) {
 	}
 }
 
-
-static BaseType_t prvUpdateWebSockets(void *pxc, void *pvArg) {
-	WebsocketClient_t *pxClient = (WebsocketClient_t*)pxc;
-	SocketCounterActionArgs_t *pxSockArgs = (SocketCounterActionArgs_t*)pvArg;
-	if ((pxClient->xWork == xWebsocketWork) && (strcasecmp(pxClient->pcRoute, pxSockArgs->pcPath) == 0)) {
+static BaseType_t prvUpdateWebSockets(void *pxc, void *pvArg)
+{
+	WebsocketClient_t *pxClient = (WebsocketClient_t *)pxc;
+	SocketCounterActionArgs_t *pxSockArgs = (SocketCounterActionArgs_t *)pvArg;
+	if ((pxClient->xWork == xWebsocketWork) && (strcasecmp(pxClient->pcRoute, pxSockArgs->pcPath) == 0))
+	{
 		return xSendWebsocketTextMessage(pxc, pxSockArgs->pcMsg, pxSockArgs->xMsgLen);
 	}
 	return 0;
 }
-
-

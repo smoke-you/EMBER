@@ -44,6 +44,8 @@ websocketd is entirely my own design, although it is based on the protocol archi
 
 ## Limitations
 
+### First-Order
+
 There are really too many to list, as the framework is far from complete (and likely never will be). A few include:
 * No ability to control which network interface is used.
 * No pretence of providing, or being designed for, any security.
@@ -53,6 +55,16 @@ There are really too many to list, as the framework is far from complete (and li
 * Limited transmit and receive buffer sizes, defaulting to 2kB, that constrain the maximum size of Websocket and HTTP POST messages both to and from the server.
 
 I hope that some of these (and other) limitations will be addressed as time permits.
+
+### Second-Order
+
+There is a particular second-order limitation to be aware of because it has a direct impact on UX. It is caused by a combination of three first-order limitations:
+
+a. There is one TCP transmit buffer and one TCP receive buffer; all connections share these objects.
+b. All TCP connections are processed sequentially in a single FreeRTOS task.
+c. File transfers (in- or out-bound) are completed within a single processing cycle.
+
+The limitation is most evident when large large blocks of data, e.g. files that are 100's of kB or more, are being transferred into or out of the host, e.g. via httpd or ftpd. When this occurs, all other TCP connections are blocked until the file transfer is completed. For example, if a large file is being transferred to or from the host via ftp, the host will not be able to serve http requests or websocket messages until the transfer completes.
 
 ## Dependencies
 

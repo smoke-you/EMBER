@@ -77,21 +77,21 @@ static BaseType_t httpCountWebsocketHandler(void *pxc);
  ===============================================*/
 
 static const RouteItem_t pxRouteItems[] = {
-    {
-        eRouteOption_IgnoreTrailingSlash + eRouteOption_AllowWildcards,
-        httpStaticHandler,
-        (const char const*[] ) { "static", "%", HTTPD_ROUTE_TERMINATOR } ,
-    },
-    {
-        eRouteOption_None,
-        httpRootHandler,
-        (const char const*[] ) { "", HTTPD_ROUTE_TERMINATOR } ,
-    },
-    {
-        eRouteOption_IgnoreTrailingSlash,
-        httpCountWebsocketHandler,
-        (const char const*[] ) { "count", HTTPD_ROUTE_TERMINATOR } ,
-    },
+	{
+		eRouteOption_IgnoreTrailingSlash + eRouteOption_AllowWildcards,
+		httpStaticHandler,
+		(const char const *[]){"static", "%", HTTPD_ROUTE_TERMINATOR},
+	},
+	{
+		eRouteOption_None,
+		httpRootHandler,
+		(const char const *[]){"", HTTPD_ROUTE_TERMINATOR},
+	},
+	{
+		eRouteOption_IgnoreTrailingSlash,
+		httpCountWebsocketHandler,
+		(const char const *[]){"count", HTTPD_ROUTE_TERMINATOR},
+	},
 };
 
 /*===============================================
@@ -99,21 +99,20 @@ static const RouteItem_t pxRouteItems[] = {
  ===============================================*/
 
 const RouteConfig_t xRouteConfig = {
-    "/\\",
-    sizeof(pxRouteItems) / sizeof(RouteItem_t),
-    pxRouteItems,
-    httpErrorHandler,
+	"/\\",
+	sizeof(pxRouteItems) / sizeof(RouteItem_t),
+	pxRouteItems,
+	httpErrorHandler,
 };
 
 const WebProtoConfig_t pxWebProtocols[] = {
-		{ 80, 12, "/", HTTPD_CLIENT_SZ, HTTPD_CREATOR_METHOD, HTTPD_WORKER_METHOD, HTTPD_DELETE_METHOD },
-		{ 21, 4, "/", FTPD_CLIENT_SZ, FTPD_CREATOR_METHOD, FTPD_WORKER_METHOD, FTPD_WORKER_METHOD },
+	{80, 12, "/", HTTPD_CLIENT_SZ, HTTPD_CREATOR_METHOD, HTTPD_WORKER_METHOD, HTTPD_DELETE_METHOD},
+	{21, 4, "/", FTPD_CLIENT_SZ, FTPD_CREATOR_METHOD, FTPD_WORKER_METHOD, FTPD_WORKER_METHOD},
 };
 
 const TCPServerConfig_t xWebProtoConfig = {
-		sizeof(pxWebProtocols) / sizeof(struct xWEBPROTO_CONFIG),
-		pxWebProtocols
-};
+	sizeof(pxWebProtocols) / sizeof(struct xWEBPROTO_CONFIG),
+	pxWebProtocols};
 
 /*===============================================
  external objects
@@ -127,92 +126,101 @@ const TCPServerConfig_t xWebProtoConfig = {
  private functions
  ===============================================*/
 
-
-static BaseType_t httpErrorHandler(void *pxc, eHttpStatus code) {
-	HTTPClient_t *pxClient = (HTTPClient_t*) pxc;
+static BaseType_t httpErrorHandler(void *pxc, eHttpStatus code)
+{
+	HTTPClient_t *pxClient = (HTTPClient_t *)pxc;
 	BaseType_t xRc;
 	pxClient->bits.ulFlags = 0;
-	snprintf((char*) pxClient->pcCurrentFilename,
-	    sizeof(pxClient->pcCurrentFilename), "/spidisk/web/error/%d.htm", code);
+	snprintf((char *)pxClient->pcCurrentFilename,
+			 sizeof(pxClient->pcCurrentFilename), "/spidisk/web/error/%d.htm", code);
 	pxClient->pxFileHandle = ff_fopen(pxClient->pcCurrentFilename, "r");
-	if (pxClient->pxFileHandle == 0) {
+	if (pxClient->pxFileHandle == 0)
+	{
 		const HttpStatusDescriptor_t *sp = pxGetHttpStatusMessage(code);
 		xRc = xSendHttpResponseHeaders(pxc, code, eResponseOption_ContentLength,
-		    sp->uxLen,
-		    "text/html", 0);
-		xRc += xSendHttpResponseContent(pxc, (char*) sp->pcText, sp->uxLen);
+									   sp->uxLen,
+									   "text/html", 0);
+		xRc += xSendHttpResponseContent(pxc, (char *)sp->pcText, sp->uxLen);
 	}
-	else {
+	else
+	{
 		xRc = xSendHttpResponseHeaders(pxClient, code,
-		    eResponseOption_ContentLength,
-		    pxClient->pxFileHandle->ulFileSize, "text/html", 0);
+									   eResponseOption_ContentLength,
+									   pxClient->pxFileHandle->ulFileSize, "text/html", 0);
 		xRc += xSendHttpResponseFile(pxClient);
 	}
 	return xRc;
 }
 
-static BaseType_t httpRootHandler(void *pxc) {
-	HTTPClient_t *pxClient = (HTTPClient_t*) pxc;
+static BaseType_t httpRootHandler(void *pxc)
+{
+	HTTPClient_t *pxClient = (HTTPClient_t *)pxc;
 	size_t uxSent;
 	BaseType_t xRc;
 	BaseType_t xLen = 0;
-	if (pxClient->xHttpVerb == eHTTP_GET) {
+	if (pxClient->xHttpVerb == eHTTP_GET)
+	{
 		pxClient->bits.ulFlags = 0;
 		strncpy(pxClient->pxParent->pcContentsType, "text/html",
-		    sizeof(pxClient->pxParent->pcContentsType));
+				sizeof(pxClient->pxParent->pcContentsType));
 		pxClient->pxFileHandle = ff_fopen("/spidisk/web/static/index.htm", "r");
 		if (pxClient->pxFileHandle == 0)
-		  return httpErrorHandler(pxc, eHTTP_NOT_FOUND);
+			return httpErrorHandler(pxc, eHTTP_NOT_FOUND);
 		xRc = xSendHttpResponseHeaders(pxClient, eHTTP_REPLY_OK,
-		    eResponseOption_ContentLength, pxClient->pxFileHandle->ulFileSize,
-		    "text/html", 0);
+									   eResponseOption_ContentLength, pxClient->pxFileHandle->ulFileSize,
+									   "text/html", 0);
 		if (xRc < 0)
-		  return xRc;
+			return xRc;
 		xLen += xRc;
 		xRc = xSendHttpResponseFile(pxClient);
 		if (xRc < 0)
-		  return xRc;
+			return xRc;
 		xLen += xRc;
 		return xLen;
 	}
-	else {
+	else
+	{
 		return httpErrorHandler(pxc, eHTTP_NOT_ALLOWED);
 	}
 }
 
-static BaseType_t httpStaticHandler(void *pxc) {
-	HTTPClient_t *pxClient = (HTTPClient_t*) pxc;
+static BaseType_t httpStaticHandler(void *pxc)
+{
+	HTTPClient_t *pxClient = (HTTPClient_t *)pxc;
 	BaseType_t xp;
 	BaseType_t xRc;
 	BaseType_t xLen = 0;
-	if (pxClient->xHttpVerb == eHTTP_GET) {
-		xp = snprintf((char*) pxClient->pcCurrentFilename,
-		    sizeof(pxClient->pcCurrentFilename), "/spidisk/web/static");
-		xp += xPrintRoute((char*) &pxClient->pcCurrentFilename[xp],
-		    &pxClient->pcRouteParts[1],
-		    sizeof(pxClient->pcCurrentFilename) - xp);
+	if (pxClient->xHttpVerb == eHTTP_GET)
+	{
+		xp = snprintf((char *)pxClient->pcCurrentFilename,
+					  sizeof(pxClient->pcCurrentFilename), "/spidisk/web/static");
+		xp += xPrintRoute((char *)&pxClient->pcCurrentFilename[xp],
+						  &pxClient->pcRouteParts[1],
+						  sizeof(pxClient->pcCurrentFilename) - xp);
 		pxClient->bits.ulFlags = 0;
 		pxClient->pxFileHandle = ff_fopen(pxClient->pcCurrentFilename, "r");
 		if (pxClient->pxFileHandle == 0)
-		  return httpErrorHandler(pxc, eHTTP_NOT_FOUND);
+			return httpErrorHandler(pxc, eHTTP_NOT_FOUND);
 		xRc = xSendHttpResponseHeaders(pxc, eHTTP_REPLY_OK,
-		    eResponseOption_ContentLength,
-		    pxClient->pxFileHandle->ulFileSize,
-		    pcGetContentsType(pxClient->pcCurrentFilename), 0);
+									   eResponseOption_ContentLength,
+									   pxClient->pxFileHandle->ulFileSize,
+									   pcGetContentsType(pxClient->pcCurrentFilename), 0);
 		if (xRc < 0)
-		  return xRc;
+			return xRc;
 		xLen += xRc;
 		xRc = xSendHttpResponseFile(pxc);
 		if (xRc < 0)
-		  return xRc;
+			return xRc;
 		xLen += xRc;
 		return xLen;
 	}
-	else {
+	else
+	{
 		return httpErrorHandler(pxc, eHTTP_NOT_ALLOWED);
 	}
 }
 
-static BaseType_t httpCountWebsocketHandler(void *pxc) {
+static BaseType_t httpCountWebsocketHandler(void *pxc)
+{
 	return xUpgradeToWebsocket(pxc, xSocketCounterMessageHandler, NULL, "/count");
 }

@@ -55,10 +55,10 @@
  public constants
  ===============================================*/
 
-#define FTPD_CLIENT_SZ          (sizeof(FTPClient_t))
-#define FTPD_CREATOR_METHOD     (NULL)
-#define FTPD_WORKER_METHOD      (xFtpWork)
-#define FTPD_DELETE_METHOD      (xFtpDelete)
+#define FTPD_CLIENT_SZ (sizeof(FTPClient_t))
+#define FTPD_CREATOR_METHOD (NULL)
+#define FTPD_WORKER_METHOD (xFtpWork)
+#define FTPD_DELETE_METHOD (xFtpDelete)
 
 /*===============================================
  public data prototypes
@@ -69,7 +69,8 @@
  * @brief FTP client data record. Inherits from `TCPClient_t` via the
  *   `TCP_CLIENT_PROPERTIES` macro.
  */
-struct xFTP_CLIENT {
+struct xFTP_CLIENT
+{
 	/* This define contains fields which must come first within each of the client structs */
 	TCP_CLIENT_PROPERTIES;
 	/* --- Keep at the top  --- */
@@ -90,25 +91,29 @@ struct xFTP_CLIENT {
 	char pcFileName[ffconfigMAX_FILENAME];
 	char pcConnectionAck[ffconfigMAX_FILENAME];
 	char pcClientAck[ffconfigMAX_FILENAME];
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			uint32_t
-			bHelloSent :1,
-			bLoggedIn :1,
-			bStatusUser :1,
-			bInRename :1,
-			bReadOnly :1;
+				bHelloSent : 1,
+				bLoggedIn : 1,
+				bStatusUser : 1,
+				bInRename : 1,
+				bReadOnly : 1;
 		};
 		uint32_t ulFTPFlags;
 	} bits;
-	union {
-		struct {
+	union
+	{
+		struct
+		{
 			uint32_t
-			bIsListen :1, /* pdTRUE for passive data connections (using list()). */
-			bDirHasEntry :1, /* pdTRUE if ff_findfirst() was successful. */
-			bClientConnected :1, /* pdTRUE after connect() or accept() has succeeded. */
-			bEmptyFile :1, /* pdTRUE if a connection-without-data was received. */
-			bHadError :1; /* pdTRUE if a transfer got aborted because of an error. */
+				bIsListen : 1,		  /* pdTRUE for passive data connections (using list()). */
+				bDirHasEntry : 1,	  /* pdTRUE if ff_findfirst() was successful. */
+				bClientConnected : 1, /* pdTRUE after connect() or accept() has succeeded. */
+				bEmptyFile : 1,		  /* pdTRUE if a connection-without-data was received. */
+				bHadError : 1;		  /* pdTRUE if a transfer got aborted because of an error. */
 		};
 		uint32_t ulConnFlags;
 	} bits1;
@@ -130,7 +135,7 @@ typedef struct xFTP_CLIENT FTPClient_t;
  *   = 0 if no error occurred and no data was transmitted
  *   > 0 the number of bytes transmitted
  */
-BaseType_t xFtpWork( void * pxTCPClient );
+BaseType_t xFtpWork(void *pxTCPClient);
 
 /**
  * @fn BaseType_t xFtpDelete(void*)
@@ -141,6 +146,6 @@ BaseType_t xFtpWork( void * pxTCPClient );
  * @param pxc An anonymized `FTPClient_t` instance.
  * @return 0
  */
-BaseType_t xFtpDelete( void * pxc );
+BaseType_t xFtpDelete(void *pxc);
 
 #endif /* EMBER_V0_0_INC_FTPD_H_ */
