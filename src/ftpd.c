@@ -551,12 +551,12 @@ BaseType_t xFtpDelete(void *pxc) {
 	/* Close any open file handle. */
 	prvTransferCloseFile(pxClient);
 
-//	/* Close the FTP command socket */
-//	if (pxClient->sock != FREERTOS_NO_SOCKET) {
-//		FreeRTOS_FD_CLR(pxClient->sock, pxClient->parent->sockSet, eSELECT_ALL);
-//		FreeRTOS_closesocket(pxClient->sock);
-//		pxClient->sock = FREERTOS_NO_SOCKET;
-//	}
+	/* Close the FTP command socket */
+	if (pxClient->xSock != FREERTOS_NO_SOCKET) {
+		FreeRTOS_FD_CLR(pxClient->xSock, pxClient->pxParent->xSockSet, eSELECT_ALL);
+		FreeRTOS_closesocket(pxClient->xSock);
+		pxClient->xSock = FREERTOS_NO_SOCKET;
+	}
 	return 0;
 }
 

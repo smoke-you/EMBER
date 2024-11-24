@@ -101,7 +101,7 @@ static const TCPServerConfig_t _xWebProtoConfig = {0, 0};
  ===============================================*/
 
 static EmberConfig_t xEmber =
-	{pdFALSE, 2048, 3000, 10, 0, &xWebProtoConfig, 0};
+	{ pdFALSE, emberSTACK_SIZE, emberSTARTUP_DELAY_MS, emberPERIOD_MS, 0, &xWebProtoConfig, 0 };;
 
 /*===============================================
  public functions
@@ -322,6 +322,7 @@ static TCPClient_t *prvRemoveClient(TCPClient_t *pxClient)
 	xSemaphoreTake(xEmber.pxServer->xClientMutex, portMAX_DELAY);
 	TCPClient_t *pxNextClient = pxClient->pxNextClient;
 	prvDropClient(pxClient);
+	vPortFree(pxClient);
 	xSemaphoreGive(xEmber.pxServer->xClientMutex);
 	return pxNextClient;
 }
