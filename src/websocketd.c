@@ -47,6 +47,7 @@
  ===============================================*/
 
 #include "inc/websocketd.h"
+#include <string.h>
 
 /*===============================================
  private constants
@@ -117,10 +118,8 @@ BaseType_t xWebsocketWork(void *pxc)
 		if (pxClient->pxTxtHandler)
 			return pxClient->pxTxtHandler(pxc);
 		else
-		{
 			prvSendClose(pxClient, eWS_UNSUPPORTED_DATA);
-			return -1;
-		}
+		return -1;
 	case eWSOp_Binary:
 		if (pxClient->pxBinHandler)
 			return pxClient->pxBinHandler(pxc);
@@ -157,6 +156,22 @@ const WebsocketStatusDescriptor_t *const pxGetWebsocketStatusMessage(
 		sp++;
 	}
 	return defaultWebsocketStatus;
+}
+
+BaseType_t xSendWebsocketHeader(
+	void *pxc,
+	const eWebsocketOpcode eCode,
+	const size_t uxPayloadSz)
+{
+	return prvSendMessageHeader(pxc, eCode, uxPayloadSz);
+}
+
+BaseType_t xSendWebsocketPayload(
+	void *pxc,
+	const void *pvPayload,
+	const size_t uxLen)
+{
+	return prvSendMessagePayload(pxc, pvPayload, uxLen);
 }
 
 BaseType_t xSendWebsocketTextMessage(
@@ -255,26 +270,26 @@ static BaseType_t prvSendMessageHeader(
 	const size_t uxPayloadSz)
 {
 	BaseType_t xRc;
-	char *pcSndBuff = pxClient->pxParent->pcSndBuff;
+	char buff[sizeof(WebsocketSendHeaderX16_t)];
 	if (uxPayloadSz < 126)
 	{
-		WebsocketSendHeader_t *pxHeader = (WebsocketSendHeader_t *)pcSndBuff;
+		WebsocketSendHeader_t *pxHeader = (WebsocketSendHeader_t *)buff;
 		memset(pxHeader, 0, sizeof(WebsocketSendHeader_t));
 		pxHeader->xFlags.fin = 1;
 		pxHeader->xFlags.opcode = eCode;
 		pxHeader->xFlags.payLen = uxPayloadSz;
-		return FreeRTOS_send(pxClient->xSock, (const void *)pcSndBuff,
+		return FreeRTOS_send(pxClient->xSock, (const void *)buff,
 							 sizeof(WebsocketSendHeader_t), 0);
 	}
 	else if (uxPayloadSz < 65536)
 	{
-		WebsocketSendHeaderX16_t *pxHeader = (WebsocketSendHeaderX16_t *)pcSndBuff;
+		WebsocketSendHeaderX16_t *pxHeader = (WebsocketSendHeaderX16_t *)buff;
 		memset(pxHeader, 0, sizeof(WebsocketSendHeaderX16_t));
 		pxHeader->xFlags.fin = 1;
 		pxHeader->xFlags.opcode = eCode;
 		pxHeader->xFlags.payLen = 126;
 		pxHeader->usPayLenX16 = FreeRTOS_htons(uxPayloadSz);
-		return FreeRTOS_send(pxClient->xSock, (const void *)pcSndBuff,
+		return FreeRTOS_send(pxClient->xSock, (const void *)buff,
 							 sizeof(WebsocketSendHeaderX16_t), 0);
 	}
 	else

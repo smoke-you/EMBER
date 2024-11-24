@@ -150,7 +150,7 @@ static void prvSocketCounter_Service(void *pvArgs)
 {
 	char pcMsg[32];
 	SocketCounterActionArgs_t xSelectArg = {"/count", pcMsg, 0};
-	while (true)
+	while (1)
 	{
 		xSelectArg.xMsgLen = snprintf(pcMsg, sizeof(pcMsg), "{\"count\":%d}", prvCount);
 		Ember_SelectClients(prvUpdateWebSockets, &xSelectArg);

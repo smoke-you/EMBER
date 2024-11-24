@@ -68,8 +68,6 @@
 static BaseType_t httpErrorHandler(void *pxc, eHttpStatus code);
 static BaseType_t httpRootHandler(void *pxc);
 static BaseType_t httpStaticHandler(void *pxc);
-static BaseType_t httpRNGHandler(void *pxc);
-static BaseType_t httpRTCWebsocketHandler(void *pxc);
 static BaseType_t httpCountWebsocketHandler(void *pxc);
 
 /*===============================================

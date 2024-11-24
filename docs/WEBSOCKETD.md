@@ -85,3 +85,7 @@ A websocket server task can identify and transmit to connected clients using the
 An example of how to configure `xSelect` and `pvArg` is shown [here](./WEBSOCKETD_getting_started.md#service-tasks).
 
 Other uses may be concievably be found for `Ember_SelectClients`, but it was designed to allow websocket server tasks to broadcast messages to the subset of dependent Websocket clients.  The server task provides both `xSelect` and `pvArg`, allowing it to iterate over the set of current TCP clients, identify websocket clients that "belong" to it, and transmit messages to only those clients using the [websocket message transmission functions](#responding-to-received-messages).
+
+#### Warning
+
+You must *not* use the common TCP transmit buffer, typically found at `pxClient->pxParent->pcSndBuff` from a client's perspective, as a temporary construction location for websocket push messages. There is a concurrency risk due to access to this buffer not being protected in any way. It is possible for a TCP client running in the EMBER task to attempt to concurrently use the buffer to e.g. send an HTTP response, resulting in either or both the websocket push message and the TCP client transmission being corrupted. To avoid this risk, you should use another memory space, e.g. the pushing task's stack, to construct websocket push messages.
