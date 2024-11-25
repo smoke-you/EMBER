@@ -31,3 +31,7 @@ See [here](./HTTPD_getting_started.md) to get started.
 ## Operation
 
 httpd exposes the worker function `xHttpWork` that is periodically called by the EMBER task for each HTTP client connection. The worker function listens for and attempts to handle incoming HTTP requests. Where a request is well-formed and its route is recognized, a corresponding handler function is executed. Handler functions have the signature `BaseType_t (*)(void*)`, where the void pointer argument is an anonymised `HTTPClient_t` instance, and the return value is either an error (if negative) or the number of bytes transmitted in response to the request (if zero or positive).
+
+## Limitations
+
+Modern web browsers tend to want to open a single connection to a server; use that connection to transport multiple resources; and keep the connection open for future exchanges. This is a reasonable approach for high-capacity servers, but it is not practical for small embedded servers like EMBER. To prevent this undesirable behaviour, EMBER sends a response header `"Connection: close"` when responding to any HTTP request, instructing the browser/client to close the connection after the exchange. This means that one connection is opened per requested resource, so e.g. requesting a web page that loads additional resources (javascript files, css files, images, etc) will open multiple, possibly concurrent, connections.

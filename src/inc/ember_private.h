@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2024 Mark R. Turner.  All Rights Reserved.
+ * Copyright (C) Mark R. Turner.  All Rights Reserved.
  *
  * The Ember ("EMBedded c webservER") server code is based on the FreeRTOS Labs
  * TCP protocols example at
@@ -58,15 +58,15 @@
  public constants
  ===============================================*/
 
-#define FREERTOS_NO_SOCKET (0)
+#define	FREERTOS_NO_SOCKET					(0)
 
-#define TCP_CLIENT_PROPERTIES         \
-	struct xTCP_SERVER *pxParent;     \
+#define TCP_CLIENT_PROPERTIES        \
+	struct xTCP_SERVER *pxParent;      \
 	Socket_t xSock;                   \
-	xTCPClientCreate xCreator;        \
-	xTCPClientWorker xWork;           \
-	xTCPClientDelete xDelete;         \
-	struct xTCP_CLIENT *pxPrevClient; \
+	xTCPClientCreate xCreator;         \
+	xTCPClientWorker xWork;            \
+	xTCPClientDelete xDelete;          \
+	struct xTCP_CLIENT *pxPrevClient;  \
 	struct xTCP_CLIENT *pxNextClient
 
 /*===============================================
@@ -77,13 +77,13 @@
  * GENERIC TCP CLIENT DEFINITIONS
  * -----------------------------------------**/
 
-typedef BaseType_t (*xTCPClientCreate)(void *);
-typedef BaseType_t (*xTCPClientWorker)(void *);
-typedef BaseType_t (*xTCPClientDelete)(void *);
+typedef BaseType_t (*xTCPClientCreate)(void*);
+typedef BaseType_t (*xTCPClientWorker)(void*);
+typedef BaseType_t (*xTCPClientDelete)(void*);
 
-struct xTCP_CLIENT
-{
-	TCP_CLIENT_PROPERTIES;
+struct xTCP_CLIENT {
+	TCP_CLIENT_PROPERTIES
+		;
 };
 typedef struct xTCP_CLIENT TCPClient_t;
 
@@ -91,8 +91,7 @@ typedef struct xTCP_CLIENT TCPClient_t;
  * GENERIC TCP SERVER DEFINITIONS
  * -----------------------------------------**/
 
-struct xWEBPROTO_SERVER
-{
+struct xWEBPROTO_SERVER {
 	struct xTCP_SERVER *pxParent;
 	const char *pcRootDir;
 	size_t uxClientSz;
@@ -103,8 +102,7 @@ struct xWEBPROTO_SERVER
 };
 typedef struct xWEBPROTO_SERVER WebProtoServer_t;
 
-struct xTCP_SERVER
-{
+struct xTCP_SERVER {
 	SocketSet_t xSockSet;
 	char pcRcvBuff[emberTCP_RCV_BUFFER_SIZE];
 	char pcSndBuff[emberTCP_SND_BUFFER_SIZE];
@@ -119,9 +117,7 @@ struct xTCP_SERVER
 };
 typedef struct xTCP_SERVER TCPServer_t;
 
-struct xWEBPROTO_CONFIG
-{
-	//	TCPProtocol_t type;
+struct xWEBPROTO_CONFIG {
 	BaseType_t xPortNum;
 	BaseType_t xBacklog;
 	const char *pcRootDir;
@@ -132,8 +128,7 @@ struct xWEBPROTO_CONFIG
 };
 typedef struct xWEBPROTO_CONFIG WebProtoConfig_t;
 
-struct xTCP_SERVER_CONFIG
-{
+struct xTCP_SERVER_CONFIG {
 	const size_t uxNumProtocols;
 	const WebProtoConfig_t *const pxProtocols;
 };
