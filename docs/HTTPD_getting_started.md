@@ -41,11 +41,11 @@ Two options are recognized:
 
 A simple `xRouteConfig` might look like:
 
-```
+```C
 static BaseType_t httpRootHandler(void *pxc);
 static BaseType_t httpStaticHandler(void *pxc);
 static BaseType_t httpRNGHandler(void *pxc);
-static BaseType_t httpRTCWebsocketHandler(void *pxc);
+static BaseType_t httpCountWebsocketHandler(void *pxc);
 static BaseType_t httpErrorHandler(void *pxc, eHttpStatus code);
 
 const RouteConfig_t xRouteConfig = {
@@ -89,7 +89,7 @@ const RouteConfig_t xRouteConfig = {
 
 Following is an example of mapping a route to any HTML (or other) file in the host's filesystem.
 
-```
+```C
 static BaseType_t httpRootHandler(void *pxc) {
   HTTPClient_t *pxClient = (HTTPClient_t*) pxc;
   size_t uxSent;
@@ -130,7 +130,7 @@ static BaseType_t httpRootHandler(void *pxc) {
 
 Following is an example of mapping a route to a segment of the host's filesystem. In this case, the HTTP path `/static` is mapped to the filesystem path `/spidisk/web/static`.
 
-```
+```C
 static BaseType_t httpStaticHandler(void *pxc) {
   HTTPClient_t *pxClient = (HTTPClient_t*) pxc;
   BaseType_t xp;
@@ -176,7 +176,7 @@ Following is an example of responding to an HTTP request with dynamically genera
 
 Note that the function `RNG_Read()` is not documented as it is not part of EMBER. It returns a 32-bit unsigned integer.
 
-```
+```C
 static BaseType_t httpRNGHandler(void *pxc) {
   HTTPClient_t *pxClient = (HTTPClient_t*) pxc;
   BaseType_t xRc;
@@ -218,7 +218,7 @@ Following is an example of upgrading an incoming request to a Websocket connecti
 
 The message handler function `SocketCountMessageHandler()` is discussed further [elsewhere](./WEBSOCKETD_getting_started.md#defining-a-message-handler).
 
-```
+```C
 static BaseType_t httpCountWebsocketHandler(void *pxc) {
   return xUpgradeToWebsocket(pxc, SocketCounterMessageHandler, NULL, "/count");
 }

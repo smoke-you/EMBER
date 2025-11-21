@@ -4,7 +4,7 @@
 
 You <ins>must</ins> have a file `ember_config.h` visible in the project include paths. The file may be blank, as [ember_config_defaults.h](inc/ember_config_defaults.h) will populate reasonable default configuration constants, but it <ins>must</ins> exist or the project will not compile.
 
-EMBER configuration options and their associated #define macros are documented in `ember_config_defaults.h`.
+EMBER configuration options and their associated `#define` macros are documented in `ember_config_defaults.h`.
 
 ## Configuration Objects
 
@@ -31,7 +31,7 @@ Each `WebProtoConfig_t` instance is made up of:
 ### Example Web Protocol Configuration
 
 A typical `xWebProtoConfig` might look like:
-```
+```C
 const WebProtoConfig_t pxWebProtocols[] = {
   { 21, 4, "/", FTPD_CLIENT_SZ, FTPD_CREATOR_METHOD, FTPD_WORKER_METHOD, FTPD_WORKER_METHOD },
   { 80, 12, "/", HTTPD_CLIENT_SZ, HTTPD_CREATOR_METHOD, HTTPD_WORKER_METHOD, HTTPD_DELETE_METHOD },

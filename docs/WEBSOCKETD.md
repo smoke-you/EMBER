@@ -63,7 +63,7 @@ Handler functions are simply public functions with a particular signature, as di
 
 One of the arguments supplied during calls to message handler functions is the `WebsocketClient_t` instance that received the message. This client object can then be passed to a message transmission function in order to send a response message back to the client.
 
-```
+```C
 BaseType_t xSendWebsocketHeader(void *pxc, const eWebsocketOpcode eCode, const size_t uxPayloadSz);
 BaseType_t xSendWebsocketPayload(void *pxc, const void *pvPayload, const size_t uxLen);
 BaseType_t xSendWebsocketTextMessage(void *pxc, const char *pcMsg, const size_t uxLen);
@@ -76,7 +76,13 @@ BaseType_t xSendWebsocketBinaryMessage(void *pxc, const char *pcMsg, const size_
 
 A FreeRTOS task that interacts with users via websocket connections can [receive](#handling-received-messages) and [respond to](#responding-to-received-messages) websocket messages via a handler function, as discussed above. However, the principal value of websockets, compared to e.g. HTTP POST requests, is that they allow websocket server tasks to asynchronously transmit (or *push*) content to clients, i.e. without the client polling the server. In the context of FreeRTOS, this means that tasks other than the EMBER task must be able to asynchronously transmit messages to websocket clients.
 
-A websocket server task can identify and transmit to connected clients using the function `void Ember_SelectClients(BaseType_t (*xSelect)(void*, void*), void *pvArg)` exposed by `ember.h`. This function takes two parameters:
+A websocket server task can identify and transmit to connected clients using the function
+
+```C
+void Ember_SelectClients(BaseType_t (*xSelect)(void*, void*), void *pvArg)
+```
+
+exposed by `ember.h`. This function takes two parameters:
   * `xSelect` is a function pointer that specifies what to do with `pvArg` for each selected `TCPClient_t` instance; and 
   * `pvArg` is a pointer to the data that is to be passed to `xSelect`.
 

@@ -81,7 +81,7 @@ EMBER is managed by a FreeRTOS task. During each iteration of the task loop, it:
   * The subclass of protocol client that is created depends on the TCP port that the connection is made to.
   * The client is created by a creator function associated with the protocol, allowing additional protocol-specific configuration of the connection to be carried out.
 * Executes the associated protocol worker function for each existing client connection.
-  * Client connection worker methods return an unsigned integer (a `BaseType_t` in FreeRTOS terms). If the method returns a negative value (representing an error), the connection is closed and the client instance is deleted.
+  * Client connection worker methods return an signed integer (a `BaseType_t` in FreeRTOS terms). If the method returns a negative value (representing an error), the connection is closed and the client instance is deleted.
   * Deletion of clients is facilitated by a protocol-specific deletion function that e.g. releases any open file handles.
 
 Accesses (for creation, deletion, and some other purposes) to the list of connected clients are protected by a mutex to manage concurrency risks.

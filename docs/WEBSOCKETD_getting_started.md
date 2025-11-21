@@ -12,7 +12,7 @@ websocketd does not require any configuration objects.
 
 In order to upgrade an HTTP connection to a Websocket connection, an [HTTP route handler](./HTTPD_getting_started.md#example-websocket-upgrade-request-handler-function) must explicitly perform the upgrade operation by calling `xUpgradeToWebsocket()` as shown in the example below.
 
-```
+```C
 static BaseType_t httpCountWebsocketHandler(void *pxc) {
   return xUpgradeToWebsocket(pxc, xSocketCounterMessageHandler, NULL, "/count");
 }
@@ -32,7 +32,7 @@ Message handlers are functions with the signature `BaseType_t (*)(void *pxc)`. S
 
 The following example demonstrates how a websocket message handler can be used to get or set the current value of a global unsigned integer `prvCount`. Note that the example has a dependency on [coreJSON](https://github.com/FreeRTOS/coreJSON/tree/main).
 
-```
+```C
 BaseType_t xSocketCounterMessageHandler(void *pxc) {
   WebsocketClient_t *pxClient = (WebsocketClient_t*) pxc;
   char *pcFieldVal;
@@ -61,7 +61,7 @@ A websocket service task is a FreeRTOS task that pushes content to any connected
 
 Following is an example of defining and starting a simple service task that periodically increments the value of a global unsigned integer `prvCount` then pushes the value to connected websocket clients as JSON-encoded websocket text messages.
 
-```
+```C
 typedef struct {
   const char * pcPath;
   char * pcMsg;
